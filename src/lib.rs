@@ -15,7 +15,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-// Uint Implementation internals
+// Nat Implementation internals
 mod internals;
 mod uimpl;
 
@@ -43,21 +43,21 @@ pub mod uint;
 /// It is guaranteed (including to unsafe code) that there is a one-to-one correspondence between
 /// the non-negative integers and the set of types that can be observed to implement this trait.
 #[diagnostic::on_unimplemented(
-    message = "`{Self}` is not a `Uint`",
-    label = "`{Self}` was expected to implement `Uint` directly",
+    message = "`{Self}` is not a `Nat`",
+    label = "`{Self}` was expected to implement `Nat` directly",
     note = "Consider using `uint::From<{Self}>` if `{Self}: NatExpr`"
 )]
-pub trait Uint: Sized + 'static + internals::UintSealed + NatExpr<Eval = Self> {}
+pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 
-/// A type that can be turned into a [`Uint`]
+/// A type that can be turned into a [`Nat`]
 ///
 /// This is not only a conversion trait, but forms an important part in how most operations are
 /// implemented. See the [`expr`] module.
 #[diagnostic::on_unimplemented(
-    message = "Cannot convert `{Self}` to a `Uint`",
-    label = "To be used like a `Uint`, `{Self}` must implement `NatExpr`"
+    message = "Cannot convert `{Self}` to a `Nat`",
+    label = "To be used like a `Nat`, `{Self}` must implement `NatExpr`"
 )]
 pub trait NatExpr {
-    /// Performs the conversion to [`Uint`].
-    type Eval: Uint;
+    /// Performs the conversion to [`Nat`].
+    type Eval: Nat;
 }

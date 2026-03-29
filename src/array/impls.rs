@@ -1,5 +1,5 @@
 use crate::{
-    Uint,
+    Nat,
     array::{helper::*, *},
     condty::CondResult,
     expr,
@@ -52,7 +52,7 @@ mod core_impl;
 mod iter;
 mod tuple_convert;
 
-impl<T, N: Uint, A> ArrApi<A>
+impl<T, N: Nat, A> ArrApi<A>
 where
     A: Array<Item = T, Length = N>,
 {

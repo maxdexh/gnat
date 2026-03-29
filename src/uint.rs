@@ -2,12 +2,12 @@
 
 use core::cmp::Ordering;
 
-use crate::{NatExpr, Uint, expr, maxint::Umax, uint};
+use crate::{Nat, NatExpr, expr, maxint::Umax, uint};
 
 /// Alias for [`NatExpr::Eval`].
 pub type From<N> = <N as NatExpr>::Eval;
 
-/// Turns an integer literal into a [`Uint`].
+/// Turns an integer literal into a [`Nat`].
 ///
 /// If you have a small constant value that is not a literal, use [`uint::FromU128`].
 ///
@@ -36,7 +36,7 @@ macro_rules! __lit {
 }
 pub use __lit as lit;
 
-const fn to_umax_overflowing<N: Uint>() -> (Umax, bool) {
+const fn to_umax_overflowing<N: Nat>() -> (Umax, bool) {
     const {
         if is_nonzero::<N>() {
             let (h, o1) = to_umax_overflowing::<uint::From<expr::PopBit<N>>>();
@@ -48,27 +48,27 @@ const fn to_umax_overflowing<N: Uint>() -> (Umax, bool) {
         }
     }
 }
-const fn to_umax<N: Uint>() -> Option<Umax> {
+const fn to_umax<N: Nat>() -> Option<Umax> {
     match to_umax_overflowing::<N>() {
         (n, false) => Some(n),
         (_, true) => None,
     }
 }
 
-/// Returns whether a [`Uint`] is nonzero.
+/// Returns whether a [`Nat`] is nonzero.
 pub const fn is_nonzero<N: NatExpr>() -> bool {
     crate::internals::InternalOp!(N::Eval, IS_NONZERO)
 }
-/// Returns whether a [`Uint`] is zero.
+/// Returns whether a [`Nat`] is zero.
 pub const fn is_zero<N: NatExpr>() -> bool {
     !is_nonzero::<N>()
 }
 
-/// Returns the decimal representation of a [`Uint`] for arbitrarily large `N`.
+/// Returns the decimal representation of a [`Nat`] for arbitrarily large `N`.
 pub const fn to_str<N: NatExpr>() -> &'static str {
-    const fn to_byte_str_naive<N: Uint>() -> &'static [u8] {
+    const fn to_byte_str_naive<N: Nat>() -> &'static [u8] {
         struct ConcatBytes<N>(N);
-        impl<N: Uint> type_const::Const for ConcatBytes<N> {
+        impl<N: Nat> type_const::Const for ConcatBytes<N> {
             type Type = &'static [&'static [u8]];
             const VALUE: Self::Type = &[
                 // Recursively append the last digit
@@ -81,7 +81,7 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
                 &[b'0' + to_usize::<expr::Rem<N, uint::lit!(10)>>().unwrap() as u8],
             ];
         }
-        const fn doit<N: Uint>() -> &'static [u8] {
+        const fn doit<N: Nat>() -> &'static [u8] {
             const {
                 if is_nonzero::<N>() {
                     const_util::concat::concat_bytes::<ConcatBytes<N>>()
@@ -97,7 +97,7 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
     }
 
     // try to stringify the primitive representation if there is any
-    const fn shortcut_umax<N: Uint>() -> &'static str {
+    const fn shortcut_umax<N: Nat>() -> &'static str {
         const {
             let fast_eval = const {
                 const MAXLEN: usize = crate::maxint::umax_strlen(Umax::MAX);
@@ -160,7 +160,7 @@ pub const fn to_u128<N: NatExpr>() -> Option<u128> {
 /// If this function returns [`Equal`](core::cmp::Ordering::Equal), it is guaranteed that
 /// [`L::Eval`](NatExpr) and [`R::Eval`](NatExpr) are exactly the same type.
 pub const fn cmp<L: NatExpr, R: NatExpr>() -> Ordering {
-    const fn doit<L: Uint, R: Uint>() -> Ordering {
+    const fn doit<L: Nat, R: Nat>() -> Ordering {
         const {
             if !is_nonzero::<L>() {
                 match is_nonzero::<R>() {
@@ -187,7 +187,7 @@ pub const fn cmp<L: NatExpr, R: NatExpr>() -> Ordering {
     doit::<L::Eval, R::Eval>()
 }
 
-const fn cmp_umax<Lhs: Uint>(rhs: Umax) -> Ordering {
+const fn cmp_umax<Lhs: Nat>(rhs: Umax) -> Ordering {
     if let Some(lhs) = to_umax::<Lhs>() {
         if lhs < rhs {
             Ordering::Less
@@ -201,12 +201,12 @@ const fn cmp_umax<Lhs: Uint>(rhs: Umax) -> Ordering {
     }
 }
 
-/// Compares a [`Uint`] (lhs) to a [`u128`] (rhs).
+/// Compares a [`Nat`] (lhs) to a [`u128`] (rhs).
 pub const fn cmp_u128<Lhs: NatExpr>(rhs: u128) -> Ordering {
     cmp_umax::<Lhs::Eval>(rhs as _)
 }
 
-/// Compares a [`Uint`] (lhs) to a [`usize`] (rhs).
+/// Compares a [`Nat`] (lhs) to a [`usize`] (rhs).
 pub const fn cmp_usize<Lhs: NatExpr>(rhs: usize) -> Ordering {
     cmp_umax::<Lhs::Eval>(rhs as _)
 }

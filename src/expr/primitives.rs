@@ -1,6 +1,6 @@
 use super::*;
 
-/// Pops the last bit of a [`Uint`], thereby getting half its value.
+/// Pops the last bit of a [`Nat`], thereby getting half its value.
 ///
 /// This is a primitive operation.
 ///
@@ -13,7 +13,7 @@ use super::*;
 #[apply(lazy)]
 pub type PopBit<N> = InternalOp!(uint::From<N>, PopBit);
 
-/// Gets the last bit of a [`Uint`], thereby getting its [parity](https://en.wikipedia.org/wiki/Parity_(mathematics)).
+/// Gets the last bit of a [`Nat`], thereby getting its [parity](https://en.wikipedia.org/wiki/Parity_(mathematics)).
 ///
 /// This is a primitive operation.
 ///
@@ -26,7 +26,7 @@ pub type PopBit<N> = InternalOp!(uint::From<N>, PopBit);
 #[apply(lazy)]
 pub type LastBit<N> = InternalOp!(uint::From<N>, LastBit);
 
-/// Pushes a single bit to the end of a [`Uint`].
+/// Pushes a single bit to the end of a [`Nat`].
 ///
 /// This is a primitive operation.
 ///
@@ -63,7 +63,7 @@ pub type If<C, T, F> = InternalOp!(uint::From<C>, If<T, F>);
 /// This is a primitive operation.
 ///
 /// This operation just evaluates to the same value as `Out`, but only after
-/// going through a projection via an internal associated [`Uint`] type on
+/// going through a projection via an internal associated [`Nat`] type on
 /// [`P::NatExpr`](NatExpr).
 ///
 /// See the [module level documentation](crate::expr) for details on opaqueness.

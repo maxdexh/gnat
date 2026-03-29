@@ -1,6 +1,6 @@
-use crate::{Uint, array::*, uint};
+use crate::{Nat, array::*, uint};
 
-impl<T, N: Uint, A> ArrApi<A>
+impl<T, N: Nat, A> ArrApi<A>
 where
     A: Array<Item = T, Length = N>,
 {
@@ -65,7 +65,7 @@ where
     }
 }
 
-impl<A, T, N: Uint> Clone for ArrApi<A>
+impl<A, T, N: Nat> Clone for ArrApi<A>
 where
     A: Array<Item = T, Length = N>,
     T: Clone,
@@ -83,7 +83,7 @@ where
 }
 impl<A> Copy for ArrApi<A> where A: Array<Item: Copy> + Copy {}
 
-impl<A, T, N: Uint> Default for ArrApi<A>
+impl<A, T, N: Nat> Default for ArrApi<A>
 where
     A: Array<Item = T, Length = N>,
     T: Default,
@@ -96,7 +96,7 @@ where
 const _: () = {
     use core::fmt::{self, Debug};
 
-    impl<A, T, N: Uint> Debug for ArrApi<A>
+    impl<A, T, N: Nat> Debug for ArrApi<A>
     where
         A: Array<Item = T, Length = N>,
         T: Debug,

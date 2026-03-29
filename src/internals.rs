@@ -1,4 +1,4 @@
-use crate::{NatExpr, Uint, array::Array, uimpl::*};
+use crate::{Nat, NatExpr, array::Array, uimpl::*};
 
 // NOTE: items from this module with names starting with _,
 // except the above, are not meant to be used from anywhere
@@ -7,15 +7,15 @@ use crate::{NatExpr, Uint, array::Array, uimpl::*};
 pub trait _Cond {
     type _CondTy<T, F>;
 }
-impl<C: Uint> _Cond for C {
+impl<C: Nat> _Cond for C {
     type _CondTy<T, F> = InternalOp!(C, _CondTy<T, F>);
 }
 pub type CondTy<C, T, F> = <C as _Cond>::_CondTy<T, F>;
 
-pub type _Internals<N> = <N as UintSealed>::__Uint;
+pub type _Internals<N> = <N as NatSealed>::__Nat;
 macro_rules! InternalOp {
     ($N:ty, $($item:tt)*) => {
-        <crate::internals::_Internals<$N> as crate::internals::_Uint>::$($item)*
+        <crate::internals::_Internals<$N> as crate::internals::_Nat>::$($item)*
     };
 }
 pub(crate) use InternalOp;
@@ -24,12 +24,12 @@ pub trait ArraySealed {}
 
 // Map the internal API to the public one using an
 // undocumented associated type.
-pub trait UintSealed: 'static {
+pub trait NatSealed: 'static {
     /// Not public API
     #[doc(hidden)]
-    type __Uint: _Uint;
+    type __Nat: _Nat;
 }
-pub trait _Uint: _UintArrs + 'static {
+pub trait _Nat: _NatArrs + 'static {
     const IS_NONZERO: bool;
 
     // This needs to evaluate directly to `T` or `F` because it is observable
@@ -41,42 +41,42 @@ pub trait _Uint: _UintArrs + 'static {
     // do the NatExpr conversion on the result here directly. This has the
     // advantage of making errors more readable, since if this was `: NatExpr`,
     // then `uint::From<If<C, T, F>>` would normalize to
-    // <<< C as UintSealed>::__Uint
-    //       as _Uint>::IfImpl<T, F>
+    // <<< C as NatSealed>::__Nat
+    //       as _Nat>::IfImpl<T, F>
     //       as NatExpr>::Eval
-    // Converting to `Uint` here removes the final `NatExpr` conversion.
-    type If<T: NatExpr, F: NatExpr>: Uint;
-    type Opaque<N: NatExpr>: Uint;
+    // Converting to `Nat` here removes the final `NatExpr` conversion.
+    type If<T: NatExpr, F: NatExpr>: Nat;
+    type Opaque<N: NatExpr>: Nat;
 
     // Opaque in all arguments, including `Self`.
-    type PopBit: Uint;
-    type LastBit: Uint;
-    type PushSelfAsBit<N: Uint>: Uint;
+    type PopBit: Nat;
+    type LastBit: Nat;
+    type PushSelfAsBit<N: Nat>: Nat;
 
     // PushBit<N, P> has to project through N and P to make the operation
     // opaque with respect to both, so simply implementing with a helper
     // `_ToBit: _Bit` doesn't work, because e.g.
     // `uint::From<PopBit<PushBit<N, _1>>>` would normalize to `w`.
-    type _DirectAppend<B: _Bit>: _Uint;
+    type _DirectAppend<B: _Bit>: _Nat;
 }
 
-pub trait _Pint: _Uint {}
-pub trait _Bit: _Uint {}
+pub trait _Pint: _Nat {}
+pub trait _Bit: _Nat {}
 
 #[diagnostic::do_not_recommend]
-impl<N: _Uint> UintSealed for N {
-    type __Uint = N;
+impl<N: _Nat> NatSealed for N {
+    type __Nat = N;
 }
 #[diagnostic::do_not_recommend]
-impl<N: _Uint> NatExpr for N {
+impl<N: _Nat> NatExpr for N {
     type Eval = N;
 }
 #[diagnostic::do_not_recommend]
-impl<N: _Uint> Uint for N {}
+impl<N: _Nat> Nat for N {}
 
 // 0
 impl _Bit for _0 {}
-impl _Uint for _0 {
+impl _Nat for _0 {
     const IS_NONZERO: bool = false;
 
     type _CondTy<T, F> = F;
@@ -87,14 +87,14 @@ impl _Uint for _0 {
     type PopBit = _0;
     type LastBit = _0;
 
-    type PushSelfAsBit<N: Uint> = InternalOp!(N, _DirectAppend<Self>);
+    type PushSelfAsBit<N: Nat> = InternalOp!(N, _DirectAppend<Self>);
     type _DirectAppend<B: _Bit> = B;
 }
 
 // 1
 impl _Bit for _1 {}
 impl _Pint for _1 {}
-impl _Uint for _1 {
+impl _Nat for _1 {
     const IS_NONZERO: bool = true;
 
     type _CondTy<T, F> = T;
@@ -105,14 +105,14 @@ impl _Uint for _1 {
     type PopBit = _0;
     type LastBit = _1;
 
-    type PushSelfAsBit<N: Uint> = InternalOp!(N, _DirectAppend<Self>);
+    type PushSelfAsBit<N: Nat> = InternalOp!(N, _DirectAppend<Self>);
     type _DirectAppend<B: _Bit> = _U<Self, B>;
 }
 
 // 2 * N + B where N > 0, B <= 1. Together with 0 and 1, this covers
 // all non-negative integers.
 impl<Pre: _Pint, Last: _Bit> _Pint for _U<Pre, Last> {}
-impl<Pre: _Pint, Last: _Bit> _Uint for _U<Pre, Last> {
+impl<Pre: _Pint, Last: _Bit> _Nat for _U<Pre, Last> {
     const IS_NONZERO: bool = true;
 
     type _CondTy<T, F> = T;
@@ -123,7 +123,7 @@ impl<Pre: _Pint, Last: _Bit> _Uint for _U<Pre, Last> {
     type PopBit = Pre;
     type LastBit = Last;
 
-    type PushSelfAsBit<N: Uint> = InternalOp!(N, _DirectAppend<_1>);
+    type PushSelfAsBit<N: Nat> = InternalOp!(N, _DirectAppend<_1>);
     type _DirectAppend<B: _Bit> = _U<Self, B>;
 }
 
@@ -172,22 +172,22 @@ macro_rules! gen_arr_internals {
         $(
             #[doc = core::concat!("The inner [`Array`] type of ", core::stringify!($out), ".")]
             #[cfg_attr(not(doc), repr(transparent))]
-            pub struct $out_inner<T: $($bound)*, N: crate::Uint>($bound_name<T, N>);
+            pub struct $out_inner<T: $($bound)*, N: crate::Nat>($bound_name<T, N>);
 
             // SAFETY: repr(transparent), array was recursively constructed to be a valid implementor
-            unsafe impl<T: $($bound)*, N: crate::Uint> Array for $out_inner<T, N> {
+            unsafe impl<T: $($bound)*, N: crate::Nat> Array for $out_inner<T, N> {
                 type Item = T;
                 type Length = N;
             }
-            impl<T: $($bound)*, N: crate::Uint> ArraySealed for $out_inner<T, N> {}
+            impl<T: $($bound)*, N: crate::Nat> ArraySealed for $out_inner<T, N> {}
 
-            impl<T: $($bound)*, N: crate::Uint> Copy for $out_inner<T, N>
+            impl<T: $($bound)*, N: crate::Nat> Copy for $out_inner<T, N>
             where
                 T: Copy,
                 $bound_name<T, N>: Copy
             {
             }
-            impl<T: $($bound)*, N: crate::Uint> Clone for $out_inner<T, N>
+            impl<T: $($bound)*, N: crate::Nat> Clone for $out_inner<T, N>
             where
                 T: Copy,
                 $bound_name<T, N>: Copy
@@ -206,7 +206,7 @@ macro_rules! gen_arr_internals {
 }
 use crate::array::ArrApi;
 gen_arr_internals![
-    _UintArrs,
+    _NatArrs,
     [
         [
             _Arr,
@@ -233,12 +233,12 @@ gen_arr_internals![
     ],
     ArrApi,
 ];
-impl _UintArrs for _0 {
+impl _NatArrs for _0 {
     impl_body_zero!();
 }
-impl _UintArrs for _1 {
+impl _NatArrs for _1 {
     impl_body_one!();
 }
-impl<Pre: _Pint, Pop: _Bit> _UintArrs for _U<Pre, Pop> {
+impl<Pre: _Pint, Pop: _Bit> _NatArrs for _U<Pre, Pop> {
     impl_body_bisect!(Pre, Pop);
 }

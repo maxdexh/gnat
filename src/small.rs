@@ -1,8 +1,8 @@
-//! Small [`Uint`](crate::Uint) constants
+//! Small [`Nat`](crate::Nat) constants
 
 macro_rules! new_alias {
     ($name:ident, $val:literal, $ty:ty) => {
-        #[doc = core::concat!("`", $val, "` as a [`Uint`](crate::Uint)")]
+        #[doc = core::concat!("`", $val, "` as a [`Nat`](crate::Nat)")]
         pub type $name = $ty;
         #[diagnostic::do_not_recommend]
         impl crate::NatExpr for crate::consts::ConstU128<$val> {

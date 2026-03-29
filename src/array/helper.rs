@@ -1,10 +1,10 @@
 use core::marker::PhantomData;
 
-use crate::{Uint, array::*, const_fmt, uint};
+use crate::{Nat, array::*, const_fmt, uint};
 
 #[track_caller]
 pub(crate) const fn arr_len<A: Array>() -> usize {
-    const fn doit<N: Uint>() -> usize {
+    const fn doit<N: Nat>() -> usize {
         let precalc = const {
             match uint::to_usize::<N>() {
                 Some(n) => Ok(n),

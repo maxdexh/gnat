@@ -1,4 +1,4 @@
-//! Internal types implementing the `Uint` trait
+//! Internal types implementing the `Nat` trait
 //!
 //! Names are kept short to keep them
 //! readable as binary numbers in error messages.

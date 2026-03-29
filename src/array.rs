@@ -1,9 +1,9 @@
-//! Drop-in replacement for builtin `[T; N]` arrays, using [`Uint`] for the length
+//! Drop-in replacement for builtin `[T; N]` arrays, using [`Nat`] for the length
 //!
 //! TODO: Examples
 //!
 //! # Oversized arrays
-//! Because [`Uint`] is not restricted to the values of a [`usize`], it is possible to have array
+//! Because [`Nat`] is not restricted to the values of a [`usize`], it is possible to have array
 //! types that have a [`Length`] exceeding [`usize::MAX`]. These arrays can only exist when the
 //! item type is zero-sized, as they would otherwise exceed the object size limit of [`isize::MAX`].
 //!
@@ -11,12 +11,12 @@
 //! when interacting with them. These methods/impls have a line in their documentation stating that
 //! oversized arrays are unsupported.
 //!
-//! [`Uint`]: crate::Uint
+//! [`Nat`]: crate::Nat
 //! [`Length`]: Array::Length
 
 use crate::internals;
 
-/// Trait for arrays whose length is measured as a [`Uint`](crate::Uint).
+/// Trait for arrays whose length is measured as a [`Nat`](crate::Nat).
 ///
 /// # Safety
 /// Currently, this trait is sealed.
@@ -41,7 +41,7 @@ pub unsafe trait Array: Sized + internals::ArraySealed {
     /// The item type of the array.
     type Item;
     /// The length of the array as a type-level integer.
-    type Length: crate::Uint;
+    type Length: crate::Nat;
 }
 
 pub use crate::internals::array_types::*;

@@ -1,13 +1,13 @@
 #![cfg(test)]
 
-use crate::{Uint, small::*, uint, expr};
+use crate::{Nat, expr, small::*, uint};
 
 pub(crate) type SatDec<N> = uint::From<expr::If<N, expr::_DecUnchecked<N>, U0>>;
 
 #[test]
 /// Make sure the test runner is actually testing anything, since it uses SatDec to traverse ranges.
 fn test_satdec() {
-    fn doit<const N: u128, V: Uint>()
+    fn doit<const N: u128, V: Nat>()
     where
         crate::consts::ConstU128<N>: crate::NatExpr<Eval = V>,
     {
@@ -36,28 +36,28 @@ pub(crate) type DefaultHi = uint::From<
 >;
 pub(crate) type DefaultLo = crate::small::U0;
 
-/// A type-level linked list of `Uint`s
-pub(crate) trait UintList: Sized {
+/// A type-level linked list of `Nat`s
+pub(crate) trait NatList: Sized {
     const EMPTY: bool;
-    type First: Uint;
-    type Tail: UintList;
-    type Len: Uint;
+    type First: Nat;
+    type Tail: NatList;
+    type Len: Nat;
 
     type ReduceTestsArgs<T: Tests<RangesLo = Self>>: Tests<RangesLo = ()>;
 }
 
-pub(crate) type ListLen<L> = <L as UintList>::Len;
+pub(crate) type ListLen<L> = <L as NatList>::Len;
 pub(crate) type InputLen<T> = ListLen<<T as Tests>::RangesLo>;
 pub(crate) trait Tests: Sized {
     // The n-dimensional input range
-    type RangesLo: UintList;
-    type RangesHi: UintList;
-    fn run_tests_on<L: UintList<Len = InputLen<Self>>>();
+    type RangesLo: NatList;
+    type RangesHi: NatList;
+    fn run_tests_on<L: NatList<Len = InputLen<Self>>>();
 }
 
 // The empty list must be cyclical for `Tail` and `ReduceTests` when recursing over it,
 // so that we don't need to monomorphize infinitely many functions.
-impl UintList for () {
+impl NatList for () {
     const EMPTY: bool = true;
     type First = U0;
     type Tail = Self;
@@ -65,20 +65,20 @@ impl UintList for () {
 
     type ReduceTestsArgs<T: Tests<RangesLo = Self>> = T;
 }
-impl<N: Uint, L: UintList> UintList for (N, L) {
+impl<N: Nat, L: NatList> NatList for (N, L) {
     const EMPTY: bool = false;
     type First = N;
     type Tail = L;
     type Len = uint::From<expr::_Inc<L::Len>>;
 
     type ReduceTestsArgs<T: Tests<RangesLo = Self>> =
-        <L as UintList>::ReduceTestsArgs<FirstArgTestsTraverser<T>>;
+        <L as NatList>::ReduceTestsArgs<FirstArgTestsTraverser<T>>;
 }
 
 /// Recursively apply `ReduceTest` until we have no parameters left.
 pub(crate) fn run_tests<T: Tests>() {
     const fn get_dispatch<T: Tests>() -> fn() {
-        <T::RangesLo as UintList>::ReduceTestsArgs::<T>::run_tests_on::<()>
+        <T::RangesLo as NatList>::ReduceTestsArgs::<T>::run_tests_on::<()>
     }
     let dispatch = const {
         if SKIP_TESTS {
@@ -95,29 +95,29 @@ pub(crate) struct FirstArgTestsTraverser<T>(T);
 impl<T, Lo, LoTail> Tests for FirstArgTestsTraverser<T>
 where
     T: Tests<RangesLo = (Lo, LoTail)>,
-    Lo: Uint,
-    LoTail: UintList,
+    Lo: Nat,
+    LoTail: NatList,
 {
     type RangesLo = LoTail;
-    type RangesHi = <T::RangesHi as UintList>::Tail;
+    type RangesHi = <T::RangesHi as NatList>::Tail;
 
-    fn run_tests_on<L: UintList<Len = InputLen<Self>>>() {
-        Self::good_traverse::<L, <T::RangesHi as UintList>::First>()
+    fn run_tests_on<L: NatList<Len = InputLen<Self>>>() {
+        Self::good_traverse::<L, <T::RangesHi as NatList>::First>()
     }
 }
 impl<T, Len, Lo, LoTail> FirstArgTestsTraverser<T>
 where
     T: Tests<RangesLo = (Lo, LoTail)>,
-    Lo: Uint,
-    Len: Uint,
-    LoTail: UintList<Len = Len>,
+    Lo: Nat,
+    Len: Nat,
+    LoTail: NatList<Len = Len>,
 {
-    const fn next_good_traverse<L: UintList<Len = Len>, N: Uint>() -> fn() {
+    const fn next_good_traverse<L: NatList<Len = Len>, N: Nat>() -> fn() {
         Self::good_traverse::<L, SatDec<N>>
     }
-    fn good_traverse<L: UintList<Len = Len>, N: Uint>() {
+    fn good_traverse<L: NatList<Len = Len>, N: Nat>() {
         let (test, next) = const {
-            let cmp = uint::cmp::<N, <T::RangesLo as UintList>::First>();
+            let cmp = uint::cmp::<N, <T::RangesLo as NatList>::First>();
             (
                 match cmp.is_ge() {
                     true => Some(T::run_tests_on::<(N, L)>),
@@ -181,7 +181,7 @@ macro_rules! test_op {
                     [ $first $($param)* ]
                     $($range)*
                 );
-                fn run_tests_on<L: crate::expr::testing::UintList<Len = LeafInputLen>>() {
+                fn run_tests_on<L: crate::expr::testing::NatList<Len = LeafInputLen>>() {
                     Flattener::<L>::doit()
                 }
             }
@@ -190,13 +190,13 @@ macro_rules! test_op {
                 // Name a list using each param. The tail of the list
                 // is the parameter after it. For the last parameter,
                 // the tail doesn't matter, so use an extra dummy param.
-                $first: crate::expr::testing::UintList<
+                $first: crate::expr::testing::NatList<
                     Tail = $fshifted
                 >
-                $(, $param: crate::expr::testing::UintList<
+                $(, $param: crate::expr::testing::NatList<
                     Tail = $shifted
                 >)*
-                , __Extra: crate::expr::testing::UintList
+                , __Extra: crate::expr::testing::NatList
             > Flattener<$first> {
                 fn doit() {
                     // By generating code that has an explicit name for each
@@ -212,7 +212,7 @@ macro_rules! test_op {
                 }
             }
             #[expect(non_snake_case)]
-            fn doit<$first: crate::Uint $(, $param: crate::Uint)*>() {
+            fn doit<$first: crate::Nat $(, $param: crate::Nat)*>() {
                 let $first = crate::uint::to_u128::<$first>().unwrap();
                 $(let $param = crate::uint::to_u128::<$param>().unwrap();)*
                 assert_eq!(

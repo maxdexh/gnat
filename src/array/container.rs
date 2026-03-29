@@ -1,5 +1,5 @@
 use crate::{
-    Uint,
+    Nat,
     array::{helper::*, *},
     uint,
 };
@@ -107,7 +107,7 @@ pub type _DigitLen<N> = expr::If<
 >;
 pub type DigitLen<N> = uint::From<_DigitLen<N>>;
 
-pub(crate) struct BigCounter<N: Uint> {
+pub(crate) struct BigCounter<N: Nat> {
     /// # Safety
     /// Represents a number in base `usize::MAX + 1`.
     /// Little-endian, i.e. least significant digit at index 0.
@@ -124,7 +124,7 @@ const fn all_zeros(mut digits: &[usize]) -> bool {
     }
     true
 }
-impl<N: Uint> BigCounter<N> {
+impl<N: Nat> BigCounter<N> {
     pub const fn dec(&mut self) -> bool {
         if self.is_zero() {
             return false;
@@ -198,19 +198,19 @@ const unsafe fn conjure_zst<T>() -> T {
     // SAFETY: By definition. Reading ZSTs from dangling is legal.
     unsafe { core::ptr::dangling::<T>().read() }
 }
-pub(crate) struct InstanceCounter<T, N: Uint> {
+pub(crate) struct InstanceCounter<T, N: Nat> {
     /// # Safety
     /// - This type owns as many instances as indicated by the value represented by `digits`
     /// - `T` must be a ZST
     counter: BigCounter<N>,
     _p: PhantomData<T>,
 }
-impl<T, N: Uint> Drop for InstanceCounter<T, N> {
+impl<T, N: Nat> Drop for InstanceCounter<T, N> {
     fn drop(&mut self) {
         while self.pop().is_some() {}
     }
 }
-impl<T, N: Uint> InstanceCounter<T, N> {
+impl<T, N: Nat> InstanceCounter<T, N> {
     pub const fn full(arr: impl Array<Item = T, Length = N>) -> Self {
         assert!(size_of::<T>() == 0);
         core::mem::forget(arr);
@@ -348,14 +348,14 @@ impl<A: Array> ArrConsumer<A> {
     }
 }
 
-pub(crate) struct ArrRefConsumer<'a, T, N: Uint> {
+pub(crate) struct ArrRefConsumer<'a, T, N: Nat> {
     inner: condty::CondResult<
         PopDigit<N>,            // if oversized
         (BigCounter<N>, &'a T), // yield the same reference N times
         &'a [T],                // else yield from a slice
     >,
 }
-impl<'a, T, N: Uint> ArrRefConsumer<'a, T, N> {
+impl<'a, T, N: Nat> ArrRefConsumer<'a, T, N> {
     pub const fn new<A>(arr: &'a A) -> Self
     where
         A: Array<Item = T, Length = N>,

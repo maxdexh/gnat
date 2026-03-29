@@ -1,5 +1,5 @@
 use crate::{
-    Uint,
+    Nat,
     array::{container::*, *},
 };
 
@@ -8,7 +8,7 @@ pub struct IntoIter<A: Array> {
     pub(crate) items: ArrConsumer<A>,
 }
 
-impl<T, N: Uint, A> Iterator for IntoIter<A>
+impl<T, N: Nat, A> Iterator for IntoIter<A>
 where
     A: Array<Item = T, Length = N>,
 {
@@ -24,7 +24,7 @@ where
         }
     }
 }
-impl<T, N: Uint, A> DoubleEndedIterator for IntoIter<A>
+impl<T, N: Nat, A> DoubleEndedIterator for IntoIter<A>
 where
     A: Array<Item = T, Length = N>,
 {
@@ -68,7 +68,7 @@ impl<A: Array> Iterator for IntoIterDeq<A> {
         (len, Some(len))
     }
 }
-impl<T, N: Uint, A> DoubleEndedIterator for IntoIterDeq<A>
+impl<T, N: Nat, A> DoubleEndedIterator for IntoIterDeq<A>
 where
     A: Array<Item = T, Length = N>,
 {
@@ -76,7 +76,7 @@ where
         self.deq.pop_back()
     }
 }
-impl<T, N: Uint, A> ExactSizeIterator for IntoIterDeq<A> where A: Array<Item = T, Length = N> {}
+impl<T, N: Nat, A> ExactSizeIterator for IntoIterDeq<A> where A: Array<Item = T, Length = N> {}
 impl<A: Array> IntoIterator for ArrDeqApi<A> {
     type Item = A::Item;
     type IntoIter = IntoIterDeq<A>;

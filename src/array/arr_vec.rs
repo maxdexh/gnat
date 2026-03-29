@@ -5,7 +5,7 @@ mod core_impl;
 use const_util::result::expect_ok;
 
 use crate::{
-    Uint,
+    Nat,
     array::{helper::*, *},
     const_fmt, uint, utils,
 };
@@ -56,7 +56,7 @@ impl<A: Array<Item = T>, T> ArrVecDrop<A> {
 }
 
 // Methods that directly use the fields
-impl<A: Array<Item = T, Length = N>, T, N: Uint> ArrVecApi<A> {
+impl<A: Array<Item = T, Length = N>, T, N: Nat> ArrVecApi<A> {
     const fn as_repr(&self) -> &ArrVecRepr<A> {
         let Self(ArrVecDrop { repr, .. }) = self;
         repr
@@ -138,7 +138,7 @@ impl<A: Array<Item = T, Length = N>, T, N: Uint> ArrVecApi<A> {
     }
 }
 
-impl<A, T, N: Uint> ArrVecApi<A>
+impl<A, T, N: Nat> ArrVecApi<A>
 where
     A: Array<Item = T, Length = N>,
 {

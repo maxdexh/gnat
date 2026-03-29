@@ -1,4 +1,4 @@
-//! Module with operations for [`Uint`]s.
+//! Module with operations for [`Nat`]s.
 //!
 //! # Laziness
 //! Operations implemented as a struct implementing [`NatExpr`] are called lazy. They are lazy
@@ -6,18 +6,18 @@
 //! type projection [`<Op<...> as NatExpr>::Eval`](NatExpr::Eval), generally through use of
 //! [`uint::From`].
 //!
-//! All operations in this module are lazy. In order to get a [`Uint`] from them, e.g. for use
+//! All operations in this module are lazy. In order to get a [`Nat`] from them, e.g. for use
 //! with [arrays](crate::array), one has to use [`uint::From`] to evaluate them.
 //!
 //! Lazy operations are in contrast to type aliases, e.g. `type Inc<N> = uint::From<Add<N, _1>>`,
 //! which directly expand at the usage site, though they can still be lazy if they expand to
-//! a lazy operation and don't convert anything to a [`Uint`].
+//! a lazy operation and don't convert anything to a [`Nat`].
 //!
 //! # Primitive operations
 //! Operations that are implemented through a dedicated associated type are called primitive.
 //!
 //! Currently, there are the following primitive operations.
-//! They are implemented using associated types of [`Uint`] that are not public API.
+//! They are implemented using associated types of [`Nat`] that are not public API.
 //! - [`PopBit<N>`] removes the last bit of [`N::Eval`](NatExpr).
 //!     - Evaluates like `N.eval() / 2`
 //! - [`LastBit<N>`] gets the last bit of [`N::Eval`](NatExpr).
@@ -39,7 +39,7 @@
 //! "cycle detected when expanding type alias".
 //!
 //! Instead, one has to go through [`NatExpr`] to make the operation "lazy", as in its value is only
-//! computed when it is projected to [`NatExpr::NatExpr`]. For example, consider the following
+//! computed when it is projected to [`NatExpr::Eval`]. For example, consider the following
 //! implementation of [`BitAnd`]:
 //! ```
 //! use gnat::{NatExpr, small::*, expr::*, uint};
@@ -68,7 +68,7 @@
 //! ```
 //! Because `MyBitAnd` is [`NatExpr`] here and [`If`] works by only evaluating
 //! [`NatExpr::Eval`] for the branch that is needed for the output, this will
-//! safely exit when `L` becomes 0.
+//! properly exit when `L` becomes 0 and will not get stuck in an infinite loop.
 //!
 //! #### Evaluating recursive arguments
 //! Because [`PopBit`] is itself lazy, the above definition of `MyBitAnd` will
@@ -99,7 +99,7 @@
 //!
 //! These things can be guarded against using [`Opaque`]. `Opaque<P, Out>` always evaluates
 //! to `Out`, but only after projecting through an internal associated type of `P`, like
-//!`<P as Uint>::_Opaque<Out>`.
+//!`<P as Nat>::_Opaque<Out>`.
 //!
 //! This means that the compiler can only determine the value of [`Opaque<P, Out>`]
 //! after it has determined the value of `P`, and it cannot do any normalization
@@ -141,7 +141,7 @@
 //! ```
 
 #[expect(unused_imports)] // for docs
-use crate::{NatExpr, Uint};
+use crate::{Nat, NatExpr};
 use crate::{internals::InternalOp, small::*, uint, utils::apply};
 
 macro_rules! lazy_impl {

@@ -6,12 +6,12 @@
 use core::mem::MaybeUninit;
 
 use crate::{
-    Uint,
+    Nat,
     array::{helper::*, *},
     uint, utils,
 };
 
-impl<T, N: Uint, A> ArrApi<A>
+impl<T, N: Nat, A> ArrApi<A>
 where
     A: Array<Item = T, Length = N>,
 {
@@ -45,7 +45,7 @@ where
     }
 }
 
-impl<T, N: Uint, A> ArrApi<A>
+impl<T, N: Nat, A> ArrApi<A>
 where
     A: Array<Item = T, Length = N>,
 {
@@ -94,7 +94,7 @@ where
     }
 }
 
-impl<T, N: Uint, A> ArrApi<A>
+impl<T, N: Nat, A> ArrApi<A>
 where
     A: Array<Item = MaybeUninit<T>, Length = N>,
 {
@@ -132,14 +132,14 @@ where
     /// from the [`generic_upper_bound`] crate.
     ///
     /// # Examples
-    /// Converting a [`Uint`] to a string in binary, at compile time, with arbitrary length.
+    /// Converting a [`Nat`] to a string in binary, at compile time, with arbitrary length.
     /// ```
     /// extern crate generic_upper_bound as gub;
-    /// use gnat::{NatExpr, Uint, uint, expr, array::{Arr, ArrApi}};
+    /// use gnat::{NatExpr, Nat, uint, expr, array::{Arr, ArrApi}};
     /// use core::mem::MaybeUninit;
     ///
     /// type BinaryLen<N> = uint::From<expr::BaseLen<uint::lit!(2), N>>;
-    /// const fn to_binary_arr<N: Uint>() -> Arr<u8, BinaryLen<N>> {
+    /// const fn to_binary_arr<N: Nat>() -> Arr<u8, BinaryLen<N>> {
     ///     let last_bit = [
     ///         b'0' + uint::is_nonzero::<expr::LastBit::<N>>() as u8
     ///     ];
@@ -154,7 +154,7 @@ where
     /// }
     /// pub const fn to_str_binary<N: NatExpr>() -> &'static str {
     ///     struct Doit<N, const ARRLEN: usize = 0>(N);
-    ///     impl<N: Uint, const ARRLEN: usize> gub::Const for Doit<N, ARRLEN> {
+    ///     impl<N: Nat, const ARRLEN: usize> gub::Const for Doit<N, ARRLEN> {
     ///         type Type = &'static [MaybeUninit<u8>];
     ///         const VALUE: Self::Type = &{
     ///             let arr = to_binary_arr::<N>();
@@ -162,7 +162,7 @@ where
     ///                 .into_uninit_builtin::<ARRLEN>()
     ///         };
     ///     }
-    ///     impl<N: Uint> gub::AcceptUpperBound for Doit<N> {
+    ///     impl<N: Nat> gub::AcceptUpperBound for Doit<N> {
     ///         type Output = &'static [MaybeUninit<u8>];
     ///         const DESIRED_GENERIC: usize = uint::to_usize::<BinaryLen<N>>().unwrap();
     ///         type Eval<const ARRLEN: usize> = Doit<N, ARRLEN>;

@@ -1,9 +1,9 @@
-//! Various [`Uint`] constants
+//! Various [`Nat`] constants
 //!
 //! Note that some types in this module require a high recursion limit.
 
 #[allow(unused_imports)] // for docs
-use crate::{NatExpr, Uint};
+use crate::{Nat, NatExpr};
 use crate::{expr, small::*, uint};
 
 /// Holds a const [`u128`]
@@ -27,13 +27,13 @@ impl NatExpr for ConstBool<false> {
     type Eval = U0;
 }
 
-/// [`usize::BITS`] as a [`Uint`]
+/// [`usize::BITS`] as a [`Nat`]
 pub type PtrBits = uint::From<expr::Shl<ConstUsize<{ size_of::<usize>() }>, uint::lit!(3)>>;
 
-/// [`usize::MAX`] as a [`Uint`]
+/// [`usize::MAX`] as a [`Nat`]
 pub type UsizeMax = uint::From<expr::SatSub<expr::Shl<U1, PtrBits>, U1>>;
 
-/// [`isize::MAX`] as a [`Uint`]
+/// [`isize::MAX`] as a [`Nat`]
 pub type IsizeMax = uint::From<expr::PopBit<UsizeMax>>;
 
 #[test]
@@ -48,7 +48,7 @@ macro_rules! gen_maxes {
         $([$name:ident, $bits:ty, $prim:ty $(,)? ],)*
     ] => {
         $(
-            #[doc = concat!("[`", stringify!($prim), "::MAX`] as a [`Uint`]")]
+            #[doc = concat!("[`", stringify!($prim), "::MAX`] as a [`Nat`]")]
             pub type $name = uint::From<
                 crate::expr::_DecUnchecked<
                     crate::expr::Shl<U1, $bits>

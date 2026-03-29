@@ -1,6 +1,6 @@
-//! Types conditional on a [`Uint`](crate::Uint)
+//! Types conditional on a [`Nat`](crate::Nat)
 //!
-//! This module provides conditional types that depend on whether a `Uint` is zero.
+//! This module provides conditional types that depend on whether a `Nat` is zero.
 
 macro_rules! ctx {
     (|$ctxt:pat_param| $true:expr, |$ctxf:pat_param| $false:expr $(, $($C:ty $(,)?)?)?) => {{
@@ -18,17 +18,17 @@ use core::mem::ManuallyDrop;
 
 use crate::{NatExpr, uint};
 
-/// Direct conditional type based on a [`Uint`](crate::Uint).
+/// Direct conditional type based on a [`Nat`](crate::Nat).
 ///
 /// "Direct" in this context refers to the fact that the ternary is implemented as a
-/// type alias to an internal associated type on `Uint`, i.e. it is not newtype wrapped
+/// type alias to an internal associated type on `Nat`, i.e. it is not newtype wrapped
 /// (unlike [`CondResult`]).
 /// The type of `CondTy<Cond, True, False>` depends directly on `Cond`. If `Cond` is nonzero,
 /// then `CondTy<Cond, T, F>` is exactly the same type as `T`. Otherwise it is the same type as `F`.
 ///
 /// As a consequence any generic `TFun<CondTy<C, T, F>>` is exactly the same type as `TFun<T>` or
 /// `TFun<F>` and therefore is valid to transmute given a known `C` (which can be runtime checked)
-/// or `T = F` (which may follow from other invariants, such as [`Uint`](crate::Uint) uniqueness.
+/// or `T = F` (which may follow from other invariants, such as [`Nat`](crate::Nat) uniqueness.
 /// This applies even to types with unspecified layout such as `TFun<X> = Vec<X>` or type
 /// projections like `TFun<X> = <X as Tr>::Assoc`.
 ///

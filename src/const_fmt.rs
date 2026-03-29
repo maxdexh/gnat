@@ -3,7 +3,7 @@
 use core::marker::PhantomData;
 
 use crate::{
-    Uint,
+    Nat,
     maxint::{self, Umax},
     utils::subslice,
 };
@@ -186,7 +186,7 @@ enter_impl![
     |n| ConstFmtVariants::Umax(n as _)
 ];
 enter_impl![
-    [N: Uint],
+    [N: Nat],
     PhantomData<N>,
     ConstFmtVariants<'static>,
     |_| ConstFmtVariants::Str(crate::uint::to_str::<N>())
