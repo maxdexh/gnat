@@ -38,13 +38,13 @@ pub use __lit as lit;
 
 const fn to_umax_overflowing<N: Nat>() -> (Umax, bool) {
     const {
-        if is_nonzero::<N>() {
+        if is_zero::<N>() {
+            (0, false)
+        } else {
             let (h, o1) = to_umax_overflowing::<nat::Eval<expr::PopBit<N>>>();
             let (t, o2) = h.overflowing_mul(2);
-            let (n, o3) = t.overflowing_add(is_nonzero::<expr::LastBit<N>>() as _);
+            let (n, o3) = t.overflowing_add(!is_zero::<expr::LastBit<N>>() as _);
             (n, o1 || o2 || o3)
-        } else {
-            (0, false)
         }
     }
 }
@@ -55,13 +55,9 @@ const fn to_umax<N: Nat>() -> Option<Umax> {
     }
 }
 
-/// Returns whether a [`Nat`] is nonzero.
-pub const fn is_nonzero<N: NatExpr>() -> bool {
-    crate::internals::InternalOp!(N::Eval, IS_NONZERO)
-}
 /// Returns whether a [`Nat`] is zero.
 pub const fn is_zero<N: NatExpr>() -> bool {
-    !is_nonzero::<N>()
+    crate::internals::InternalOp!(N::Eval, IS_ZERO)
 }
 
 /// Returns the decimal representation of a [`Nat`] for arbitrarily large `N`.
@@ -83,10 +79,10 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
         }
         const fn doit<N: Nat>() -> &'static [u8] {
             const {
-                if is_nonzero::<N>() {
-                    const_util::concat::concat_bytes::<ConcatBytes<N>>()
-                } else {
+                if !is_zero::<N>() {
                     b""
+                } else {
+                    const_util::concat::concat_bytes::<ConcatBytes<N>>()
                 }
             }
         }
@@ -162,22 +158,20 @@ pub const fn to_u128<N: NatExpr>() -> Option<u128> {
 pub const fn cmp<L: NatExpr, R: NatExpr>() -> Ordering {
     const fn doit<L: Nat, R: Nat>() -> Ordering {
         const {
-            if !is_nonzero::<L>() {
-                match is_nonzero::<R>() {
-                    true => Ordering::Less,
-                    false => Ordering::Equal,
+            if is_zero::<L>() {
+                if is_zero::<R>() {
+                    Ordering::Equal
+                } else {
+                    Ordering::Less
                 }
             } else {
                 match doit::<Eval<expr::PopBit<L>>, Eval<expr::PopBit<R>>>() {
                     it @ (Ordering::Less | Ordering::Greater) => it,
                     Ordering::Equal => {
-                        match (
-                            is_nonzero::<expr::LastBit<L>>(),
-                            is_nonzero::<expr::LastBit<R>>(),
-                        ) {
-                            (true, true) | (false, false) => Ordering::Equal,
-                            (true, false) => Ordering::Greater,
-                            (false, true) => Ordering::Less,
+                        match (is_zero::<expr::LastBit<L>>(), is_zero::<expr::LastBit<R>>()) {
+                            (false, false) | (true, true) => Ordering::Equal,
+                            (false, true) => Ordering::Greater,
+                            (true, false) => Ordering::Less,
                         }
                     }
                 }

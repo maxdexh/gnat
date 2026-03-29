@@ -68,18 +68,26 @@ pub type _DivUnchecked<L, R> = PushBit<
 pub type _Rem<L, R> = If<
     R,
     _RemUnchecked<L, R>,
-    // Recurse infinitely on div by 0
-    _Rem<L, R>,
+    // Return the dividend for division by zero
+    L,
 >;
 
-/// Type-level [`%`](usize::div_euclid) (fallible)
+/// Type-level [`%`](std::ops::Rem).
 ///
-/// # Errors
-/// Dividing by zero gives a "overflow while evaluating" error.
-/// ```compile_fail,E0275
-/// use gnat::{expr::Rem, nat, small::*};
-/// const _: fn(nat::Eval<Rem<N1, N0>>) = |_| {};
-/// ```
+/// The remainder `Rem(L, R)` is always given by `L - (L / R) * R` (but calculated more efficiently).
+///
+/// # Examples
+#[doc = op_examples!(
+    Rem,
+    (5, 2) == 1,
+    (11, 4) == 3,
+)]
+/// Since division by zero always yields zero, the remainder is equal to the dividend.
+#[doc = op_examples!(
+    Rem,
+    (0, 0) == 0,
+    (7, 0) == 7,
+)]
 #[doc(alias = "%")]
 #[doc(alias = "modulo")]
 #[apply(opaque)]
@@ -95,18 +103,25 @@ pub type Rem<L, R> = _Rem;
 pub type _Div<L, R> = If<
     R,
     _DivUnchecked<L, R>,
-    // Recurse infinitely on div by 0
-    _Div<L, R>,
+    // Division by zero is defined as zero
+    N0,
 >;
 
-/// Type-level [`/`](usize::div_euclid) (fallible)
+/// Type-level [`/`](std::ops::Div)
 ///
-/// # Errors
-/// Dividing by zero gives a "overflow while evaluating" error.
-/// ```compile_fail,E0275
-/// use gnat::{expr::Div, nat, small::*};
-/// const _: fn(nat::Eval<Div<N1, N0>>) = |_| {};
-/// ```
+///
+/// # Examples
+#[doc = op_examples!(
+    Div,
+    (5, 2) == 2,
+    (11, 4) == 2,
+)]
+/// Division by zero is defined to yield zero.
+#[doc = op_examples!(
+    Div,
+    (0, 0) == 0,
+    (7, 0) == 0,
+)]
 #[doc(alias = "/")]
 #[apply(opaque)]
 #[apply(test_op!

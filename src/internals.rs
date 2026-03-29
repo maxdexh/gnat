@@ -30,7 +30,7 @@ pub trait NatSealed: 'static {
     type __Nat: _Nat;
 }
 pub trait _Nat: _NatArrs + 'static {
-    const IS_NONZERO: bool;
+    const IS_ZERO: bool;
 
     // This needs to evaluate directly to `T` or `F` because it is observable
     // for generic `T` and `F` (not that one could do anything else, since there
@@ -77,7 +77,7 @@ impl<N: _Nat> Nat for N {}
 // 0
 impl _Bit for _0 {}
 impl _Nat for _0 {
-    const IS_NONZERO: bool = false;
+    const IS_ZERO: bool = true;
 
     type _CondTy<T, F> = F;
 
@@ -95,7 +95,7 @@ impl _Nat for _0 {
 impl _Bit for _1 {}
 impl _Pint for _1 {}
 impl _Nat for _1 {
-    const IS_NONZERO: bool = true;
+    const IS_ZERO: bool = false;
 
     type _CondTy<T, F> = T;
 
@@ -113,7 +113,7 @@ impl _Nat for _1 {
 // all non-negative integers.
 impl<Pre: _Pint, Last: _Bit> _Pint for _U<Pre, Last> {}
 impl<Pre: _Pint, Last: _Bit> _Nat for _U<Pre, Last> {
-    const IS_NONZERO: bool = true;
+    const IS_ZERO: bool = false;
 
     type _CondTy<T, F> = T;
 

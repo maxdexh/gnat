@@ -58,13 +58,13 @@ pub type PushBit<N, P> = InternalOp!(nat::Eval<P>, PushSelfAsBit<nat::Eval<N>>);
 #[apply(lazy)]
 pub type If<C, T, F> = InternalOp!(nat::Eval<C>, If<T, F>);
 
-/// Makes `Out` opaque with respect to the value of a parameter `P`.
+/// Makes a [`NatExpr`] opaque with respect to the value of a parameter.
 ///
 /// This is a primitive operation.
 ///
-/// This operation just evaluates to the same value as `Out`, but only after
-/// going through a projection via an internal associated [`Nat`] type on
-/// [`P::NatExpr`](NatExpr).
+/// `Opaque<P, Out>` evaluates to the same [`Nat`] as `Out`, but only after
+/// going through a projection via an internal associated type on
+/// [`P::Eval`](NatExpr).
 ///
 /// See the [module level documentation](crate::expr) for details on opaqueness.
 #[apply(lazy)]

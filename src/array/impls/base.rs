@@ -141,15 +141,15 @@ where
     /// type BinaryLen<N> = nat::Eval<expr::BaseLen<nat::lit!(2), N>>;
     /// const fn to_binary_arr<N: Nat>() -> Arr<u8, BinaryLen<N>> {
     ///     let last_bit = [
-    ///         b'0' + nat::is_nonzero::<expr::LastBit::<N>>() as u8
+    ///         b'0' + !nat::is_zero::<expr::LastBit::<N>>() as u8
     ///     ];
-    ///     if nat::is_nonzero::<expr::PopBit<N>>() {
+    ///     if nat::is_zero::<expr::PopBit<N>>() {
+    ///         ArrApi::new(last_bit).try_retype().unwrap()
+    ///     } else {
     ///         to_binary_arr::<nat::Eval<expr::PopBit<N>>>()
     ///             .concat(last_bit)
     ///             .try_retype()
     ///             .unwrap()
-    ///     } else {
-    ///         ArrApi::new(last_bit).try_retype().unwrap()
     ///     }
     /// }
     /// pub const fn to_str_binary<N: NatExpr>() -> &'static str {

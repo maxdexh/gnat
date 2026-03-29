@@ -1,6 +1,6 @@
 //! Types conditional on a [`Nat`](crate::Nat)
 //!
-//! This module provides conditional types that depend on whether a `Nat` is zero.
+//! This module provides conditional types based on `Nat`s.
 
 macro_rules! ctx {
     (|$ctxt:pat_param| $true:expr, |$ctxf:pat_param| $false:expr $(, $($C:ty $(,)?)?)?) => {{
@@ -20,22 +20,20 @@ use crate::{NatExpr, nat};
 
 /// Direct conditional type based on a [`Nat`](crate::Nat).
 ///
-/// "Direct" in this context refers to the fact that the ternary is implemented as a
-/// type alias to an internal associated type on `Nat`, i.e. it is not newtype wrapped
-/// (unlike [`CondResult`]).
-/// The type of `CondTy<Cond, True, False>` depends directly on `Cond`. If `Cond` is nonzero,
-/// then `CondTy<Cond, T, F>` is exactly the same type as `T`. Otherwise it is the same type as `F`.
+/// "Direct" in this context refers to the fact that it is not newtype wrapped (unlike [`CondResult`]),
+/// so if `Cond` is nonzero, then `CondTy<Cond, T, F>` is exactly the same type as `T`.
+/// Otherwise it is the same type as `F`.
 ///
-/// As a consequence any generic `TFun<CondTy<C, T, F>>` is exactly the same type as `TFun<T>` or
-/// `TFun<F>` and therefore is valid to transmute given a known `C` (which can be runtime checked)
-/// or `T = F` (which may follow from other invariants, such as [`Nat`](crate::Nat) uniqueness.
+/// As a consequence, any generic `TFun<CondTy<C, T, F>>` is exactly the same type as `TFun<T>` or
+/// `TFun<F>` and therefore is valid to transmute if the value of `C` is known (can be checked at
+/// runtime) or `T = F` (which may follow from other invariants, such as [`Nat`](crate::Nat) uniqueness).
 /// This applies even to types with unspecified layout such as `TFun<X> = Vec<X>` or type
 /// projections like `TFun<X> = <X as Tr>::Assoc`.
 ///
 /// This type's disadvantage compared to [`CondResult`] are the usual use cases for a newtype wrapper:
 /// It is not possible to use impls of `T` and `F` if `C` is generic, it does not play nicely with
-/// type inferrence (especially of `C`) and it can't have methods. Its "methods" are defined as free
-/// standing functions in the [`direct`] module.
+/// type inferrence (especially of `C`) and it can't have methods. Its "methods" are defined as
+/// functions in the [`direct`] module.
 #[allow(type_alias_bounds)]
 pub type CondTy<Cond: NatExpr, True, False> = crate::internals::CondTy<Cond::Eval, True, False>;
 
@@ -49,6 +47,7 @@ pub type CondTy<Cond: NatExpr, True, False> = crate::internals::CondTy<Cond::Eva
 /// `T` and `Err` instances have the same layout as `E`. No space is required to store the instance
 /// kind.
 #[repr(transparent)]
+#[must_use]
 pub struct CondResult<Cond: NatExpr, T, E> {
     /// The underlying [`CondTy`]. The struct is `repr(transparent)` around this
     /// field.
@@ -71,19 +70,19 @@ impl<C: NatExpr, T, E> CondResult<C, T, E> {
     }
 
     /// Whether instances of this type are `Ok`
-    pub const IS_OK: bool = nat::is_nonzero::<C>();
+    pub const IS_OK: bool = !nat::is_zero::<C>();
 
     /// Whether instances of this type are `Err`
     pub const IS_ERR: bool = !Self::IS_OK;
 
     /// Whether this result is `Ok`
     pub const fn is_ok(&self) -> bool {
-        nat::is_nonzero::<C>()
+        Self::IS_OK
     }
 
     /// Whether this result is `Err`
     pub const fn is_err(&self) -> bool {
-        !self.is_ok()
+        Self::IS_ERR
     }
 
     /// Equivalent of [`Result::as_ref`].
@@ -102,7 +101,7 @@ impl<C: NatExpr, T, E> CondResult<C, T, E> {
 
     /// Turns this result into a regular builtin [`Result`].
     #[expect(clippy::missing_errors_doc)]
-    pub const fn into_builtin(self) -> Result<T, E> {
+    pub const fn into_std(self) -> Result<T, E> {
         ctx!(
             //
             |c| Ok(c.unwrap_ok(self)),
@@ -160,17 +159,16 @@ impl<C: NatExpr, T, E> CondResult<C, T, E> {
         )
     }
 
-    /// Wraps the content of this result in [`ManuallyDrop`].
+    /// Like [`Self::into_std`], but wraps the variants in [`ManuallyDrop`].
     ///
-    /// This may make it easier to destructure [`Self::into_builtin`] in `const` contexts when generics or
-    /// [`Drop`] impls are involved.
-    #[must_use = "The content of this result are wrapped in ManuallyDrop and may need to be dropped"]
-    #[allow(clippy::missing_errors_doc)]
-    pub const fn into_manual_drop(self) -> CondResult<C, ManuallyDrop<T>, ManuallyDrop<E>> {
+    /// This allows destructive matching in `const` contexts, even when generics or [`Drop`] impls are involved.
+    #[expect(clippy::missing_errors_doc)]
+    #[must_use = "The contents of this `Result` may need to be dropped, and it may be an `Err` variant, which needs to be handled."]
+    pub const fn into_manual_drop_std(self) -> Result<ManuallyDrop<T>, ManuallyDrop<E>> {
         ctx!(
             //
-            |c| c.new_ok(ManuallyDrop::new(c.unwrap_ok(self))),
-            |c| c.new_err(ManuallyDrop::new(c.unwrap_err(self))),
+            |c| Ok(ManuallyDrop::new(c.unwrap_ok(self))),
+            |c| Err(ManuallyDrop::new(c.unwrap_err(self))),
         )
     }
 }
@@ -218,7 +216,7 @@ impl<C: NatExpr, T> CondOption<C, T> {
     }
 
     /// Whether instances of this type are `Some`
-    pub const IS_SOME: bool = nat::is_nonzero::<C>();
+    pub const IS_SOME: bool = !nat::is_zero::<C>();
 
     /// Whether instances of this type are `None`
     pub const IS_NONE: bool = !Self::IS_SOME;
@@ -230,11 +228,11 @@ impl<C: NatExpr, T> CondOption<C, T> {
 
     /// Whether this result is `None`
     pub const fn is_none(&self) -> bool {
-        nat::is_nonzero::<C>()
+        Self::IS_NONE
     }
 
     /// Turns this option into a regular builtin [`Option`].
-    pub const fn into_builtin(self) -> Option<T> {
+    pub const fn into_std(self) -> Option<T> {
         ctx!(
             //
             |c| Some(c.unwrap_some(self)),
@@ -242,19 +240,6 @@ impl<C: NatExpr, T> CondOption<C, T> {
                 c.drop_none(self);
                 None
             },
-        )
-    }
-
-    /// Wraps the inner type of this option in [`ManuallyDrop`].
-    ///
-    /// This may make it easier to do pattern matching after converting via [`Self::into_builtin`].
-    pub const fn into_manual_drop(self) -> CondOption<C, ManuallyDrop<T>> {
-        ctx!(
-            |c| c.new_some(ManuallyDrop::new(c.unwrap_some(self))),
-            |c| {
-                c.drop_none(self);
-                c.new_none()
-            }
         )
     }
 

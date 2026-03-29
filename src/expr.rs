@@ -46,6 +46,7 @@
 //! // MyBitAnd is a struct implementing NatExpr, i.e. a lazy operation
 //! pub struct MyBitAnd<L, R>(L, R);
 //! impl<L: NatExpr, R: NatExpr> NatExpr for MyBitAnd<L, R> {
+//!     // SUBOPTIMAL IMPLEMENTATION, SEE BELOW
 //!     type Eval = nat::Eval<If<
 //!         L,
 //!         // take the bitand of the previous bits and append the and of the last bit
@@ -77,11 +78,7 @@
 //! the recursive arguments; e.g. in the example above, it is preferrable to
 //! use `MyBitAnd<nat::Eval<PopBit<L>>, nat::Eval<PopBit<R>>>`.
 //!
-//! Evaluating recursive arguments is almost always  beneficial for compile times.
-//! Note that if the recursive arguments are nontrivial to calculate or might themselves
-//! result in infinite loops when normalized, they can be refactored out into a seperate
-//! lazy operation. As an example of this, [`ILog`] uses division in its recursive argument
-//! and therefore
+//! This is almost always beneficial for compile times.
 //!
 //! # Opaqueness
 //! Note: This section is only relevant if the operation in question is public API or when
@@ -103,7 +100,7 @@
 //!
 //! This means that the compiler can only determine the value of [`Opaque<P, Out>`]
 //! after it has determined the value of `P`, and it cannot do any normalization
-//! specific to the implementation of `Out::NatExpr` before that.
+//! specific to the implementation of `Out::Eval` before that.
 //!
 //! The way to use this when implementing a public operation `Op<A, B>` is as follows:
 //! - The actual implementation is moved to a seperate lazy operation `OpImpl<A, B>`. Recursive
@@ -233,9 +230,10 @@ macro_rules! opaque {
         #[cfg(test)]
         #[allow(unused)] // Ensure that LazyBase is spanned for LSP
         const _: () = { use $LazyBase; };
-        crate::expr::lazy! {
+
+        $crate::expr::lazy! {
             $(#[$attr])*
-            pub type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = crate::expr::VarOpaque!($LazyBase<$($P),*>);
+            pub type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = $crate::nat::Eval<$crate::expr::VarOpaque!($LazyBase<$($P),*>)>;
         }
     };
 }
@@ -251,6 +249,30 @@ macro_rules! test_op {
 
         $(#[$attr])*
         $v $kw $TypeName<$($P $(= $Def)?),*> $($rest)*
+    };
+}
+
+macro_rules! op_examples {
+    (
+        $opname:ident
+        $(, ($farg:literal $(, $arg:literal)* $(,)?) == $res:literal )* $(,)?
+    ) => {
+        core::concat!(
+            "```\nuse gnat::{expr, small::*};\n# macro_rules! assert_nat_eq { ($nat:ty, $val:expr) => { assert_eq!(gnat::nat::to_u128::<$nat>(), Some($val)) } }\n",
+            $(
+                core::concat!(
+                    "assert_nat_eq!(expr::",
+                    core::stringify!($opname),
+                    "<N",
+                    $farg,
+                    $(", N", $arg,)*
+                    ">, ",
+                    $res,
+                    ");\n",
+                ),
+            )*
+            "```",
+        )
     };
 }
 
@@ -284,7 +306,7 @@ mod bitmath;
 pub use bitmath::{BitAnd, BitOr, BitXor, CountOnes};
 
 mod log;
-pub use log::{BaseLen, ILog};
+pub use log::{BaseLen, Log};
 
 mod add;
 pub use add::Add;

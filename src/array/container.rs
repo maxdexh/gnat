@@ -167,14 +167,14 @@ impl<N: Nat> BigCounter<N> {
         const {
             // SAFETY: This construction ensures self == N
             Self {
-                digits: if nat::is_nonzero::<N>() {
+                digits: if nat::is_zero::<N>() {
+                    CopyArr::of(0)
+                } else {
                     BigCounter::<PopDigit<N>>::max()
                         .digits
                         .concat([nat::to_usize_overflowing::<N>().0])
                         .try_retype()
                         .unwrap()
-                } else {
-                    CopyArr::of(0)
                 },
             }
         }

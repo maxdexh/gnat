@@ -1,23 +1,23 @@
 use super::*;
 
 #[apply(lazy)]
-pub type _ILogUncheckedNormRec<B, N> = _ILogUnchecked<
+pub type _LogUncheckedNormRec<B, N> = _LogUnchecked<
     B,
     // Normalize recursive argument
     nat::Eval<_DivUnchecked<N, B>>,
 >;
 #[apply(lazy)]
-pub type _ILogUnchecked<B, N> = If<
+pub type _LogUnchecked<B, N> = If<
     //
     _Lt<N, B>,
     N0,
-    _Inc<_ILogUncheckedNormRec<B, N>>,
+    _Inc<_LogUncheckedNormRec<B, N>>,
 >;
 #[apply(lazy)]
-pub type _ILog<B, N> = If<
+pub type _Log<B, N> = If<
     // Check B > 1 and N > 0
     _And<_H<B>, N>,
-    _ILogUnchecked<B, N>,
+    _LogUnchecked<B, N>,
     // Fallback value
     N0,
 >;
@@ -25,7 +25,20 @@ pub type _ILog<B, N> = If<
 /// Type-level [`ilog`](u128::ilog)
 ///
 /// The base is taken as the first argument.
-/// Returns 0 for inputs where the logarithm is not defined.
+///
+/// # Examples
+#[doc = op_examples!(
+    Log,
+    (5, 6) == 1,
+    (5, 4) == 0,
+)]
+/// If the logarithm is undefined, the result is 0:
+#[doc = op_examples!(
+    Log,
+    (0, 10) == 0,
+    (1, 10) == 0,
+    (5, 0) == 0,
+)]
 #[apply(opaque)]
 #[apply(test_op!
     test_ilog,
@@ -33,7 +46,7 @@ pub type _ILog<B, N> = If<
     2..,
     1..,
 )]
-pub type ILog<B, N> = _ILog;
+pub type Log<B, N> = _Log;
 
 #[apply(lazy)]
 pub type _BaseLen<B, N> = If<
@@ -42,7 +55,7 @@ pub type _BaseLen<B, N> = If<
     If<
         N,
         // If B > 1 and N > 0, length in base B is just ILog + 1
-        _Inc<_ILogUnchecked<B, N>>,
+        _Inc<_LogUnchecked<B, N>>,
         // The length of 0 is 1
         N1,
     >,
@@ -50,10 +63,9 @@ pub type _BaseLen<B, N> = If<
     If<B, N, N0>,
 >;
 
-/// Calculates the length of the number in an arbitrary base.
+/// Calculates the length of a number in an arbitrary base.
 ///
 /// The base is taken as the first argument.
-/// Returns unary length for base 1 or 0 for base 0.
 #[apply(opaque)]
 #[apply(test_op! test_base_len, {
     let mut n = N;
@@ -64,4 +76,24 @@ pub type _BaseLen<B, N> = If<
     }
     r
 }, 2..)]
+/// # Examples
+/// Calculating the length of `to_string`:
+#[doc = op_examples!(
+    BaseLen,
+    (10, 0) == 1,
+    (10, 10) == 2,
+    (10, 99) == 2,
+)]
+/// Base 1 uses unary length:
+#[doc = op_examples!(
+    BaseLen,
+    (1, 3) == 3,
+    (1, 10) == 10,
+)]
+/// Base 0 always gives 0:
+#[doc = op_examples!(
+    BaseLen,
+    (0, 0) == 0,
+    (0, 5) == 0,
+)]
 pub type BaseLen<B, N> = _BaseLen;

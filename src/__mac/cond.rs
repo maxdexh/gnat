@@ -4,17 +4,17 @@ use crate::{NatExpr, condty::*, nat, utils};
 
 pub use Result;
 
-// SAFETY INVARIANT: `COND = nat::is_nonzero::<C>()`
+// SAFETY INVARIANT: `COND = !nat::is_zero::<C>()`
 // Conversely, the existence of an instance of this type proves the above statement!
 pub struct CtxCond<C, const COND: bool> {
     _p: PhantomData<C>,
 }
 
 pub const fn hold<C: crate::NatExpr>() -> Result<CtxCond<C, true>, CtxCond<C, false>> {
-    if nat::is_nonzero::<C>() {
-        Ok(CtxCond::<C, true> { _p: PhantomData })
-    } else {
+    if nat::is_zero::<C>() {
         Err(CtxCond::<C, false> { _p: PhantomData })
+    } else {
+        Ok(CtxCond::<C, true> { _p: PhantomData })
     }
 }
 
