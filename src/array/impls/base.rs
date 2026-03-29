@@ -25,7 +25,7 @@ where
     ///
     /// # Examples
     /// ```
-    /// use genuint::{array::*, uint};
+    /// use gnat::{array::*, uint};
     ///
     /// let arr = CopyArr::<_, uint::lit!(20_000)>::from_fn(|i| i);
     /// assert_eq!(arr.try_into_builtin::<19_999>(), Err(arr));
@@ -54,7 +54,7 @@ where
     /// # Examples
     /// Creating an array of integers.
     /// ```
-    /// use genuint::{array::*, uint};
+    /// use gnat::{array::*, uint};
     /// let arr = Arr::<_, uint::lit!(4)>::of(1);
     /// assert_eq!(arr, [1; 4]);
     /// ```
@@ -62,8 +62,8 @@ where
     /// Creating an oversized array of `()`
     /// ```
     /// #![recursion_limit = "1024"]
-    /// use genuint::{array::*, uint, uops, consts::{PtrWidth, UsizeMax}};
-    /// type LargeSize = uint::From<uops::Shl<uint::lit!(1), PtrWidth>>;
+    /// use gnat::{array::*, uint, uops, consts::{PtrBits, UsizeMax}};
+    /// type LargeSize = uint::From<uops::Shl<uint::lit!(1), PtrBits>>;
     /// assert!(uint::to_usize::<LargeSize>().is_none());
     /// let arr = Arr::<_, LargeSize>::of(());
     /// let ArrConcat(most, [()]): ArrConcat<CopyArr<_, UsizeMax>, _> = arr.retype();
@@ -135,7 +135,7 @@ where
     /// Converting a [`Uint`] to a string in binary, at compile time, with arbitrary length.
     /// ```
     /// extern crate generic_upper_bound as gub;
-    /// use genuint::{ToUint, Uint, uint, uops, array::{Arr, ArrApi}};
+    /// use gnat::{NatExpr, Uint, uint, uops, array::{Arr, ArrApi}};
     /// use core::mem::MaybeUninit;
     ///
     /// type BinaryLen<N> = uint::From<uops::BaseLen<uint::lit!(2), N>>;
@@ -152,7 +152,7 @@ where
     ///         ArrApi::new(last_bit).try_retype().unwrap()
     ///     }
     /// }
-    /// pub const fn to_str_binary<N: ToUint>() -> &'static str {
+    /// pub const fn to_str_binary<N: NatExpr>() -> &'static str {
     ///     struct Doit<N, const ARRLEN: usize = 0>(N);
     ///     impl<N: Uint, const ARRLEN: usize> gub::Const for Doit<N, ARRLEN> {
     ///         type Type = &'static [MaybeUninit<u8>];
@@ -167,8 +167,8 @@ where
     ///         const DESIRED_GENERIC: usize = uint::to_usize::<BinaryLen<N>>().unwrap();
     ///         type Eval<const ARRLEN: usize> = Doit<N, ARRLEN>;
     ///     }
-    ///     let slice: &'static [MaybeUninit<u8>] = gub::eval_with_upper_bound::<Doit<N::ToUint>>();
-    ///     let (init, _) = slice.split_at(gub::desired_generic::<Doit<N::ToUint>>());
+    ///     let slice: &'static [MaybeUninit<u8>] = gub::eval_with_upper_bound::<Doit<N::Eval>>();
+    ///     let (init, _) = slice.split_at(gub::desired_generic::<Doit<N::Eval>>());
     ///     // SAFETY: The first BinaryLen<N> items were initialized in to_binary_arr and this
     ///     // casts &[MaybeUninit<u8>] to &[u8], which is valid for initialized data
     ///     let init = unsafe {

@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 
-use crate::{ToUint, condty::*, uint, utils};
+use crate::{NatExpr, condty::*, uint, utils};
 
 pub use Result;
 
@@ -10,7 +10,7 @@ pub struct CtxCond<C, const COND: bool> {
     _p: PhantomData<C>,
 }
 
-pub const fn hold<C: crate::ToUint>() -> Result<CtxCond<C, true>, CtxCond<C, false>> {
+pub const fn hold<C: crate::NatExpr>() -> Result<CtxCond<C, true>, CtxCond<C, false>> {
     if uint::is_nonzero::<C>() {
         Ok(CtxCond::<C, true> { _p: PhantomData })
     } else {
@@ -18,7 +18,7 @@ pub const fn hold<C: crate::ToUint>() -> Result<CtxCond<C, true>, CtxCond<C, fal
     }
 }
 
-impl<C: ToUint> CtxCond<C, true> {
+impl<C: NatExpr> CtxCond<C, true> {
     #[inline(always)]
     pub const fn new_true<T, F>(&self, t: T) -> CondTy<C, T, F> {
         // SAFETY: C is nonzero, so `CondTy<C, T, F> = T`
@@ -50,7 +50,7 @@ impl<C: ToUint> CtxCond<C, true> {
         self.unwrap_true(some.into_inner())
     }
 }
-impl<C: ToUint> CtxCond<C, false> {
+impl<C: NatExpr> CtxCond<C, false> {
     #[inline(always)]
     pub const fn new_false<T, F>(&self, f: F) -> CondTy<C, T, F> {
         // SAFETY: C is zero, so `CondTy<C, T, F> = F`

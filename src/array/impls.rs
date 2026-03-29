@@ -9,12 +9,12 @@ use crate::{
 // SAFETY: By definition
 unsafe impl<T, const N: usize> Array for [T; N]
 where
-    crate::consts::ConstUsize<N>: crate::ToUint,
+    crate::consts::ConstUsize<N>: crate::NatExpr,
 {
     type Item = T;
     type Length = crate::uint::From<crate::consts::ConstUsize<N>>;
 }
-impl<T, const N: usize> ArraySealed for [T; N] where crate::consts::ConstUsize<N>: crate::ToUint {}
+impl<T, const N: usize> ArraySealed for [T; N] where crate::consts::ConstUsize<N>: crate::NatExpr {}
 
 // SAFETY: MaybeUninit<[T; N]> is equivalent to [MaybeUninit<T>; N]
 unsafe impl<A: Array> Array for core::mem::MaybeUninit<A> {
@@ -87,7 +87,7 @@ where
     ///
     /// # Examples
     /// ```
-    /// use genuint::{array::*, small::*};
+    /// use gnat::{array::*, small::*};
     /// let arr = Arr::<_, U4>::from_fn(|i| i * i);
     /// assert_eq!(arr, [0, 1, 4, 9]);
     /// ```
@@ -109,7 +109,7 @@ where
     /// # Examples
     /// Retyping [`Arr`] to [`CopyArr`]:
     /// ```
-    /// use genuint::{array::*, small::*};
+    /// use gnat::{array::*, small::*};
     /// let arr = Arr::<_, U5>::from_fn(|i| i * i);
     /// let converted: CopyArr<_, _> = arr.retype();
     /// let converted_copy = converted;
@@ -118,7 +118,7 @@ where
     ///
     /// Converting a small `ArrApi` into a builtin array:
     /// ```
-    /// use genuint::{array::*, consts::*};
+    /// use gnat::{array::*, consts::*};
     /// let arr = Arr::from_fn(|i| i * i);
     /// let builtin_arr: [_; 5] = arr.retype();
     /// assert_eq!(arr, builtin_arr);

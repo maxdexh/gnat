@@ -3,42 +3,42 @@
 //! Note that some types in this module require a high recursion limit.
 
 #[allow(unused_imports)] // for docs
-use crate::{ToUint, Uint};
+use crate::{NatExpr, Uint};
 use crate::{small::*, uint, uops};
 
 /// Holds a const [`u128`]
 ///
-/// Implements [`ToUint`] for [`small`](crate::small) values.
+/// Implements [`NatExpr`] for [`small`](crate::small) values.
 pub struct ConstU128<const N: u128>;
 
 /// Holds a const [`usize`]
 ///
-/// Implements [`ToUint`] for [`small`](crate::small) values.
+/// Implements [`NatExpr`] for [`small`](crate::small) values.
 pub struct ConstUsize<const N: usize>;
 
 /// Holds a const [`bool`]
 ///
-/// Implements [`ToUint`], using seperate impls for `true` and `false`.
+/// Implements [`NatExpr`], using seperate impls for `true` and `false`.
 pub struct ConstBool<const B: bool>;
-impl ToUint for ConstBool<true> {
-    type ToUint = U1;
+impl NatExpr for ConstBool<true> {
+    type Eval = U1;
 }
-impl ToUint for ConstBool<false> {
-    type ToUint = U0;
+impl NatExpr for ConstBool<false> {
+    type Eval = U0;
 }
 
 /// [`usize::BITS`] as a [`Uint`]
-pub type PtrWidth = uint::From<uops::Shl<ConstUsize<{ size_of::<usize>() }>, uint::lit!(3)>>;
+pub type PtrBits = uint::From<uops::Shl<ConstUsize<{ size_of::<usize>() }>, uint::lit!(3)>>;
 
 /// [`usize::MAX`] as a [`Uint`]
-pub type UsizeMax = uint::From<uops::SatSub<uops::Shl<U1, PtrWidth>, U1>>;
+pub type UsizeMax = uint::From<uops::SatSub<uops::Shl<U1, PtrBits>, U1>>;
 
 /// [`isize::MAX`] as a [`Uint`]
 pub type IsizeMax = uint::From<uops::PopBit<UsizeMax>>;
 
 #[test]
 fn test_usize_max() {
-    assert_eq!(uint::to_usize::<PtrWidth>(), Some(usize::BITS as usize));
+    assert_eq!(uint::to_usize::<PtrBits>(), Some(usize::BITS as usize));
     assert_eq!(uint::to_usize::<UsizeMax>(), Some(usize::MAX));
     assert_eq!(uint::to_usize::<IsizeMax>(), Some(isize::MAX as usize));
 }

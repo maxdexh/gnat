@@ -5,12 +5,12 @@ macro_rules! new_alias {
         #[doc = core::concat!("`", $val, "` as a [`Uint`](crate::Uint)")]
         pub type $name = $ty;
         #[diagnostic::do_not_recommend]
-        impl crate::ToUint for crate::consts::ConstU128<$val> {
-            type ToUint = $name;
+        impl crate::NatExpr for crate::consts::ConstU128<$val> {
+            type Eval = $name;
         }
         #[diagnostic::do_not_recommend]
-        impl crate::ToUint for crate::consts::ConstUsize<$val> {
-            type ToUint = $name;
+        impl crate::NatExpr for crate::consts::ConstUsize<$val> {
+            type Eval = $name;
         }
     };
 }

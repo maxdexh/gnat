@@ -9,7 +9,7 @@ pub(crate) type SatDec<N> = uint::From<uops::If<N, uops::_DecUnchecked<N>, U0>>;
 fn test_satdec() {
     fn doit<const N: u128, V: Uint>()
     where
-        crate::consts::ConstU128<N>: crate::ToUint<ToUint = V>,
+        crate::consts::ConstU128<N>: crate::NatExpr<Eval = V>,
     {
         assert_eq!(uint::to_u128::<SatDec<V>>(), Some(N.saturating_sub(1)),)
     }

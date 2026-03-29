@@ -45,7 +45,7 @@ const unsafe fn subslice_init_nonnull<T>(
     slice: NonNull<[MaybeUninit<T>]>,
     Range { start, end }: Range<usize>,
 ) -> NonNull<[T]> {
-    extern crate self as genuint;
+    extern crate self as gnat;
     debug_assert!(start <= end);
     debug_assert!(end <= slice.len());
     // SAFETY: Must be

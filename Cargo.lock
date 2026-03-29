@@ -35,17 +35,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "genuint"
+name = "gnat"
 version = "0.1.0"
 dependencies = [
  "const-util",
  "generic-upper-bound",
- "genuint-proc",
+ "gnat-proc",
  "type-const",
 ]
 
 [[package]]
-name = "genuint-proc"
+name = "gnat-proc"
 version = "0.0.1"
 dependencies = [
  "ibig",

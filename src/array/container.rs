@@ -95,7 +95,7 @@ where
     }
 }
 
-pub type PopDigit<N> = uint::From<uops::_Shr<N, crate::consts::PtrWidth>>;
+pub type PopDigit<N> = uint::From<uops::_Shr<N, crate::consts::PtrBits>>;
 
 #[utils::apply(uops::lazy)]
 pub type _DigitLenRec<N> = _DigitLen<PopDigit<N>>;

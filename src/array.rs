@@ -171,7 +171,7 @@ pub type ArrDeq<T, N> = ArrDeqApi<Arr<T, N>>;
 ///
 /// # Examples
 /// ```
-/// use genuint::array::*;
+/// use gnat::array::*;
 /// const fn double_each<A: Array<Item = i32>>(vec: ArrVecApi<A>) -> ArrVecApi<A> {
 ///     let mut out = ArrVecApi::new();
 ///     let mut input = vec.as_slice();

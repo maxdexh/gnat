@@ -126,7 +126,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// let mut deq = ArrDeqApi::<[_; 20]>::new();
     /// deq.push_front(1);
@@ -154,7 +154,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// assert_eq!(ArrDeqApi::<[i32; 20]>::new(), []);
     /// ```
@@ -174,7 +174,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// assert_eq!(ArrDeqApi::new_full([1; 20]), [1; 20]);
     /// ```
@@ -193,7 +193,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// assert_eq!(ArrDeqApi::<[i32; 20]>::new().capacity(), 20);
     /// ```
@@ -205,7 +205,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// assert_eq!(ArrDeqApi::<[i32; 20]>::new().len(), 0);
     /// assert_eq!(ArrDeqApi::new_full([1; 20]).len(), 20);
@@ -218,7 +218,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// assert_eq!(ArrDeqApi::<[i32; 20]>::new().is_empty(), true);
     /// assert_eq!(ArrDeqApi::new_full([1; 20]).is_empty(), false);
@@ -231,7 +231,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// assert_eq!(ArrDeqApi::<[i32; 20]>::new().is_full(), false);
     /// assert_eq!(ArrDeqApi::new_full([1; 20]).is_full(), true);
@@ -244,7 +244,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::{array::*, small::*};
+    /// use gnat::{array::*, small::*};
     ///
     /// assert_eq!(
     ///     ArrDeqApi::<[i32; 20]>::new().pop_front(),
@@ -283,7 +283,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::{array::*, small::*};
+    /// use gnat::{array::*, small::*};
     ///
     /// assert_eq!(
     ///     ArrDeqApi::<[i32; 20]>::new().pop_back(),
@@ -318,7 +318,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// let mut deq = ArrDeqApi::<[_; 20]>::new();
     /// deq.push_front(1);
@@ -340,7 +340,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// let mut deq = ArrDeqApi::<[_; 20]>::new();
     /// deq.push_back(1);
@@ -362,7 +362,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// let mut deq = ArrDeqApi::<[_; 2]>::new();
     /// assert_eq!(deq.try_push_front(1), Ok(()));
@@ -397,7 +397,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// let mut deq = ArrDeqApi::<[_; 2]>::new();
     /// assert_eq!(deq.try_push_back(1), Ok(()));
@@ -434,7 +434,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// let mut deq = ArrDeqApi::<[_; 20]>::new();
     /// deq.push_front(1);
@@ -464,7 +464,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     /// to return an empty slice as the right tuple element.
     ///
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     /// let mut deq = ArrDeqApi::<[i32; 20]>::new();
     /// for i in 0..3 {
     ///     deq.push_back(i);
@@ -524,7 +524,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// let mut deq = ArrDeqApi::<[_; 20]>::new();
     /// deq.push_front(2);
@@ -549,7 +549,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     ///
     /// let mut deq = ArrDeqApi::<[i32; 2]>::new();
     /// deq.push_back(2);
@@ -579,7 +579,7 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// See the info about the [Drop implementation](crate::array::ArrVecApi#drop-implementation).
     /// ```
-    /// use genuint::array::*;
+    /// use gnat::array::*;
     /// const fn works_in_const<A: Array<Item = i32>>(arr: A) -> i32 {
     ///     let mut deq = ArrDeqApi::new_full(arr);
     ///     let mut sum = 0;

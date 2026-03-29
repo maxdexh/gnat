@@ -45,19 +45,19 @@ pub mod uops;
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a `Uint`",
     label = "`{Self}` was expected to implement `Uint` directly",
-    note = "Consider using `uint::From<{Self}>` if `{Self}: ToUint`"
+    note = "Consider using `uint::From<{Self}>` if `{Self}: NatExpr`"
 )]
-pub trait Uint: Sized + 'static + internals::UintSealed + ToUint<ToUint = Self> {}
+pub trait Uint: Sized + 'static + internals::UintSealed + NatExpr<Eval = Self> {}
 
 /// A type that can be turned into a [`Uint`]
 ///
 /// This is not only a conversion trait, but forms an important part in how most operations are
-/// implemented. See the [`ops`] module.
+/// implemented. See the [`uops`] module.
 #[diagnostic::on_unimplemented(
     message = "Cannot convert `{Self}` to a `Uint`",
-    label = "To be used like a `Uint`, `{Self}` must implement `ToUint`"
+    label = "To be used like a `Uint`, `{Self}` must implement `NatExpr`"
 )]
-pub trait ToUint {
+pub trait NatExpr {
     /// Performs the conversion to [`Uint`].
-    type ToUint: Uint;
+    type Eval: Uint;
 }

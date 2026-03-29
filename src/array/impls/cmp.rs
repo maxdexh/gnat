@@ -1,4 +1,4 @@
-use crate::{ToUint, array::*, consts::ConstUsize};
+use crate::{NatExpr, array::*, consts::ConstUsize};
 
 fn partial_eq_impl<A: Array, U>(lhs: &ArrApi<A>, rhs: &[U]) -> bool
 where
@@ -29,7 +29,7 @@ impl<A, U, const N: usize> PartialEq<[U; N]> for ArrApi<A>
 where
     A: Array,
     A::Item: PartialEq<U>,
-    ConstUsize<N>: ToUint<ToUint = A::Length>,
+    ConstUsize<N>: NatExpr<Eval = A::Length>,
 {
     fn eq(&self, other: &[U; N]) -> bool {
         partial_eq_impl(self, other)

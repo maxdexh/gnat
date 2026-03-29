@@ -173,7 +173,6 @@ macro_rules! for_each_ptr {
         Owned! { fn $fn, $cb }
     };
 }
-pub(crate) use for_each_ptr;
 
 macro_rules! decl_retype {
     ($ty:ident { $($mods:tt)* } ($retype:ident, $try_retype:ident)) => {

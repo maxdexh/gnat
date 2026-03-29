@@ -43,9 +43,9 @@ pub type PushBit<N, P> = InternalOp!(uint::From<P>, PushSelfAsBit<uint::From<N>>
 ///
 /// This is a primitive operation.
 ///
-/// If `Cond` is truthy, then `uint::From<If<Cond, Then, Else>>` is the same as
+/// If `Cond` is truthy (nonzero), then `uint::From<If<Cond, Then, Else>>` is the same as
 /// `uint::From<Then>`. Otherwise, it is the same as `uint::From<Else>`.
-/// Only the resulting argument has its [`ToUint::ToUint`] implementation accessed,
+/// Only the resulting argument has its [`NatExpr::Eval`] implementation accessed,
 /// i.e. the other branch is not evaluated and thus cannot lead to cycles. This allows
 /// breaking out of recursively implemented operations.
 ///
@@ -64,7 +64,7 @@ pub type If<C, T, F> = InternalOp!(uint::From<C>, If<T, F>);
 ///
 /// This operation just evaluates to the same value as `Out`, but only after
 /// going through a projection via an internal associated [`Uint`] type on
-/// [`P::ToUint`](ToUint).
+/// [`P::NatExpr`](NatExpr).
 ///
 /// See the [module level documentation](crate::uops) for details on opaqueness.
 #[apply(lazy)]
@@ -99,7 +99,7 @@ fn opaqueness_tests() {
             _ = Wat::<$lhs, $rhs, false>::CONST
         };
     }
-    fn accept<A: ToUint, B: ToUint>() {
+    fn accept<A: NatExpr, B: NatExpr>() {
         // types that are provably the same
         check_eq!(uint::From<If<U1, A, B>>, uint::From<A>);
         check_eq!(uint::From<If<U0, A, B>>, uint::From<B>);

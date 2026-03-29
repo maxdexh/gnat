@@ -1,11 +1,11 @@
-//! Utilities related to [`ToUint`] implementors.
+//! Utilities related to [`NatExpr`] implementors.
 
 use core::cmp::Ordering;
 
-use crate::{ToUint, Uint, maxint::Umax, uint, uops};
+use crate::{NatExpr, Uint, maxint::Umax, uint, uops};
 
-/// Alias for [`ToUint::ToUint`].
-pub type From<N> = <N as ToUint>::ToUint;
+/// Alias for [`NatExpr::Eval`].
+pub type From<N> = <N as NatExpr>::Eval;
 
 /// Turns an integer literal into a [`Uint`].
 ///
@@ -15,7 +15,7 @@ pub type From<N> = <N as ToUint>::ToUint;
 /// ```
 /// #![recursion_limit = "1024"] // `lit!` doesn't recurse, the type is just long
 ///
-/// use genuint::uint;
+/// use gnat::uint;
 /// assert_eq!(uint::to_u128::<uint::lit!(1)>(), Some(1));
 /// assert_eq!(
 ///     uint::to_u128::<uint::lit!(100000000000000000000000000000)>(),
@@ -56,16 +56,16 @@ const fn to_umax<N: Uint>() -> Option<Umax> {
 }
 
 /// Returns whether a [`Uint`] is nonzero.
-pub const fn is_nonzero<N: ToUint>() -> bool {
-    crate::internals::InternalOp!(N::ToUint, IS_NONZERO)
+pub const fn is_nonzero<N: NatExpr>() -> bool {
+    crate::internals::InternalOp!(N::Eval, IS_NONZERO)
 }
 /// Returns whether a [`Uint`] is zero.
-pub const fn is_zero<N: ToUint>() -> bool {
+pub const fn is_zero<N: NatExpr>() -> bool {
     !is_nonzero::<N>()
 }
 
 /// Returns the decimal representation of a [`Uint`] for arbitrarily large `N`.
-pub const fn to_str<N: ToUint>() -> &'static str {
+pub const fn to_str<N: NatExpr>() -> &'static str {
     const fn to_byte_str_naive<N: Uint>() -> &'static [u8] {
         struct ConcatBytes<N>(N);
         impl<N: Uint> type_const::Const for ConcatBytes<N> {
@@ -122,44 +122,44 @@ pub const fn to_str<N: ToUint>() -> &'static str {
         }
     }
 
-    shortcut_umax::<N::ToUint>()
+    shortcut_umax::<N::Eval>()
 }
 
-/// Converts `N::ToUint` to a `usize` with overflow and reutrns whether any wrapping
+/// Converts [`N::Eval`](NatExpr) to a `usize` with overflow and reutrns whether any wrapping
 /// occurred.
-pub const fn to_usize_overflowing<N: ToUint>() -> (usize, bool) {
-    let (n, o1) = to_umax_overflowing::<N::ToUint>();
+pub const fn to_usize_overflowing<N: NatExpr>() -> (usize, bool) {
+    let (n, o1) = to_umax_overflowing::<N::Eval>();
     (n as _, o1 || n > usize::MAX as Umax)
 }
 
-/// Converts `N::ToUint` to a `usize` or returns `None` if it doesn't fit.
-pub const fn to_usize<N: ToUint>() -> Option<usize> {
+/// Converts [`N::Eval`](NatExpr) to a `usize` or returns `None` if it doesn't fit.
+pub const fn to_usize<N: NatExpr>() -> Option<usize> {
     match to_usize_overflowing::<N>() {
         (n, false) => Some(n),
         (_, true) => None,
     }
 }
 
-/// Converts `N::ToUint` to a `u128` with overflow and reutrns whether any wrapping
+/// Converts [`N::Eval`](NatExpr) to a `u128` with overflow and reutrns whether any wrapping
 /// occurred.
-pub const fn to_u128_overflowing<N: ToUint>() -> (u128, bool) {
-    let (n, o1) = to_umax_overflowing::<N::ToUint>();
+pub const fn to_u128_overflowing<N: NatExpr>() -> (u128, bool) {
+    let (n, o1) = to_umax_overflowing::<N::Eval>();
     (n as _, o1 || n > u128::MAX as Umax)
 }
 
-/// Converts `N::ToUint` to a `u128` or returns `None` if it doesn't fit.
-pub const fn to_u128<N: ToUint>() -> Option<u128> {
+/// Converts [`N::Eval`](NatExpr) to a `u128` or returns `None` if it doesn't fit.
+pub const fn to_u128<N: NatExpr>() -> Option<u128> {
     match to_u128_overflowing::<N>() {
         (n, false) => Some(n),
         (_, true) => None,
     }
 }
 
-/// Compares `L::ToUint` and `R::Uint`.
+/// Compares [`L::Eval`](NatExpr) and [`R::Eval`](NatExpr).
 ///
 /// If this function returns [`Equal`](core::cmp::Ordering::Equal), it is guaranteed that
-/// `L::ToUint` and `R::ToUint` are exactly the same type.
-pub const fn cmp<L: ToUint, R: ToUint>() -> Ordering {
+/// [`L::Eval`](NatExpr) and [`R::Eval`](NatExpr) are exactly the same type.
+pub const fn cmp<L: NatExpr, R: NatExpr>() -> Ordering {
     const fn doit<L: Uint, R: Uint>() -> Ordering {
         const {
             if !is_nonzero::<L>() {
@@ -184,7 +184,7 @@ pub const fn cmp<L: ToUint, R: ToUint>() -> Ordering {
             }
         }
     }
-    doit::<L::ToUint, R::ToUint>()
+    doit::<L::Eval, R::Eval>()
 }
 
 const fn cmp_umax<Lhs: Uint>(rhs: Umax) -> Ordering {
@@ -202,11 +202,11 @@ const fn cmp_umax<Lhs: Uint>(rhs: Umax) -> Ordering {
 }
 
 /// Compares a [`Uint`] (lhs) to a [`u128`] (rhs).
-pub const fn cmp_u128<Lhs: ToUint>(rhs: u128) -> Ordering {
-    cmp_umax::<Lhs::ToUint>(rhs as _)
+pub const fn cmp_u128<Lhs: NatExpr>(rhs: u128) -> Ordering {
+    cmp_umax::<Lhs::Eval>(rhs as _)
 }
 
 /// Compares a [`Uint`] (lhs) to a [`usize`] (rhs).
-pub const fn cmp_usize<Lhs: ToUint>(rhs: usize) -> Ordering {
-    cmp_umax::<Lhs::ToUint>(rhs as _)
+pub const fn cmp_usize<Lhs: NatExpr>(rhs: usize) -> Ordering {
+    cmp_umax::<Lhs::Eval>(rhs as _)
 }

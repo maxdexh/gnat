@@ -2,7 +2,7 @@ use core::{
     mem::{ManuallyDrop, MaybeUninit},
     ptr::NonNull,
 };
-pub(crate) use genuint_proc::__apply as apply;
+pub(crate) use gnat_proc::__apply as apply;
 
 /// Performs the operation of moving the argument into a `repr(C)` union
 /// of `Src` and `Dst` and reading out `Dst`.

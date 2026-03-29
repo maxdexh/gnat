@@ -4,13 +4,13 @@ members = ["proc"]
 
 [package]
 version.workspace = true
-name = "genuint"
+name = "gnat"
 edition = "2024"
 
 [dependencies]
 const-util = "2.2.0"
 type-const = "1.1.1"
-genuint-proc = { path = "proc" }
+gnat-proc = { path = "proc" }
 
 [dev-dependencies]
 generic-upper-bound = "3.1.1"

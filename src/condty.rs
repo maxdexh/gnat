@@ -16,7 +16,7 @@ pub mod direct;
 
 use core::mem::ManuallyDrop;
 
-use crate::{ToUint, uint};
+use crate::{NatExpr, uint};
 
 /// Direct conditional type based on a [`Uint`](crate::Uint).
 ///
@@ -37,7 +37,7 @@ use crate::{ToUint, uint};
 /// type inferrence (especially of `C`) and it can't have methods. Its "methods" are defined as free
 /// standing functions in the [`direct`] module.
 #[allow(type_alias_bounds)]
-pub type CondTy<Cond: ToUint, True, False> = crate::internals::CondTy<Cond::ToUint, True, False>;
+pub type CondTy<Cond: NatExpr, True, False> = crate::internals::CondTy<Cond::Eval, True, False>;
 
 /// A [`Result`]-like wrapper for [`CondTy`]
 ///
@@ -49,12 +49,12 @@ pub type CondTy<Cond: ToUint, True, False> = crate::internals::CondTy<Cond::ToUi
 /// `T` and `Err` instances have the same layout as `E`. No space is required to store the instance
 /// kind.
 #[repr(transparent)]
-pub struct CondResult<Cond: ToUint, T, E> {
+pub struct CondResult<Cond: NatExpr, T, E> {
     /// The underlying [`CondTy`]. The struct is `repr(transparent)` around this
     /// field.
     pub inner: CondTy<Cond, T, E>,
 }
-impl<C: ToUint, T, E> CondResult<C, T, E> {
+impl<C: NatExpr, T, E> CondResult<C, T, E> {
     /// Turns this result into its wrapped [`CondTy`] by moving out of
     /// [`self.direct`](Self::direct).
     ///
@@ -175,7 +175,7 @@ impl<C: ToUint, T, E> CondResult<C, T, E> {
     }
 }
 
-impl<C: ToUint, T> CondResult<C, T, T> {
+impl<C: NatExpr, T> CondResult<C, T, T> {
     /// Creates a result where both instance kinds have the same type.
     pub const fn new_trivial(inner: T) -> Self {
         Self {
@@ -195,13 +195,13 @@ impl<C: ToUint, T> CondResult<C, T, T> {
 /// If `Cond` is zero, then this struct is a `repr(transparent)` wrapper around `E`.
 /// Otherwise, it is a `repr(transparent)` wrapper around `()`.
 #[repr(transparent)]
-pub struct CondOption<Cond: ToUint, T> {
+pub struct CondOption<Cond: NatExpr, T> {
     /// The underlying [`CondTy`]. The struct is `repr(transparent)` around this
     /// field.
     pub inner: CondTy<Cond, T, ()>,
 }
 
-impl<C: ToUint, T> CondOption<C, T> {
+impl<C: NatExpr, T> CondOption<C, T> {
     /// Turns this option into its wrapped [`CondTy`] by moving out of
     /// [`self.direct`](Self::direct).
     ///

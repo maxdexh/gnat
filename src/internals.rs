@@ -1,4 +1,4 @@
-use crate::{ToUint, Uint, array::Array, uimpl::*};
+use crate::{NatExpr, Uint, array::Array, uimpl::*};
 
 // NOTE: items from this module with names starting with _,
 // except the above, are not meant to be used from anywhere
@@ -37,16 +37,16 @@ pub trait _Uint: _UintArrs + 'static {
     // are no trait bounds)
     type _CondTy<T, F>;
 
-    // These are exposed only through structs implementing ToUint, so we can
-    // do the ToUint conversion on the result here directly. This has the
-    // advantage of making errors more readable, since if this was `: ToUint`,
+    // These are exposed only through structs implementing NatExpr, so we can
+    // do the NatExpr conversion on the result here directly. This has the
+    // advantage of making errors more readable, since if this was `: NatExpr`,
     // then `uint::From<If<C, T, F>>` would normalize to
     // <<< C as UintSealed>::__Uint
     //       as _Uint>::IfImpl<T, F>
-    //       as ToUint>::ToUint
-    // Converting to `Uint` here removes the final `ToUint` conversion.
-    type If<T: ToUint, F: ToUint>: Uint;
-    type Opaque<N: ToUint>: Uint;
+    //       as NatExpr>::Eval
+    // Converting to `Uint` here removes the final `NatExpr` conversion.
+    type If<T: NatExpr, F: NatExpr>: Uint;
+    type Opaque<N: NatExpr>: Uint;
 
     // Opaque in all arguments, including `Self`.
     type PopBit: Uint;
@@ -68,8 +68,8 @@ impl<N: _Uint> UintSealed for N {
     type __Uint = N;
 }
 #[diagnostic::do_not_recommend]
-impl<N: _Uint> ToUint for N {
-    type ToUint = N;
+impl<N: _Uint> NatExpr for N {
+    type Eval = N;
 }
 #[diagnostic::do_not_recommend]
 impl<N: _Uint> Uint for N {}
@@ -81,8 +81,8 @@ impl _Uint for _0 {
 
     type _CondTy<T, F> = F;
 
-    type If<T: ToUint, F: ToUint> = F::ToUint;
-    type Opaque<N: ToUint> = N::ToUint;
+    type If<T: NatExpr, F: NatExpr> = F::Eval;
+    type Opaque<N: NatExpr> = N::Eval;
 
     type PopBit = _0;
     type LastBit = _0;
@@ -99,8 +99,8 @@ impl _Uint for _1 {
 
     type _CondTy<T, F> = T;
 
-    type If<T: ToUint, F: ToUint> = T::ToUint;
-    type Opaque<N: ToUint> = N::ToUint;
+    type If<T: NatExpr, F: NatExpr> = T::Eval;
+    type Opaque<N: NatExpr> = N::Eval;
 
     type PopBit = _0;
     type LastBit = _1;
@@ -117,8 +117,8 @@ impl<Pre: _Pint, Last: _Bit> _Uint for _U<Pre, Last> {
 
     type _CondTy<T, F> = T;
 
-    type If<T: ToUint, F: ToUint> = T::ToUint;
-    type Opaque<N: ToUint> = N::ToUint;
+    type If<T: NatExpr, F: NatExpr> = T::Eval;
+    type Opaque<N: NatExpr> = N::Eval;
 
     type PopBit = Pre;
     type LastBit = Last;
