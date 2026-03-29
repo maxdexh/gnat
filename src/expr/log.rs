@@ -27,7 +27,7 @@ pub type _ILog<B, N> = If<
 /// # Errors
 /// Using `B <= 1` or `N == 0` gives an "overflow while evaluating" error.
 /// ```compile_fail,E0275
-/// use gnat::{uops::ILog, uint, small::*};
+/// use gnat::{expr::ILog, uint, small::*};
 /// const _: fn(uint::From<ILog<U1, U0>>) = |_| {};
 /// ```
 #[apply(opaque)]
@@ -58,7 +58,7 @@ pub type _BaseLen<B, N> = If<
 /// # Errors
 /// Using `B <= 1` gives an "overflow while evaluating" error.
 /// ```compile_fail,E0275
-/// use gnat::{uops::BaseLen, uint, small::*};
+/// use gnat::{expr::BaseLen, uint, small::*};
 /// const _: fn(uint::From<BaseLen<U1, U0>>) = |_| {};
 /// ```
 #[apply(opaque)]

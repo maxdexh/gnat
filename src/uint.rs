@@ -2,7 +2,7 @@
 
 use core::cmp::Ordering;
 
-use crate::{NatExpr, Uint, maxint::Umax, uint, uops};
+use crate::{NatExpr, Uint, expr, maxint::Umax, uint};
 
 /// Alias for [`NatExpr::Eval`].
 pub type From<N> = <N as NatExpr>::Eval;
@@ -39,9 +39,9 @@ pub use __lit as lit;
 const fn to_umax_overflowing<N: Uint>() -> (Umax, bool) {
     const {
         if is_nonzero::<N>() {
-            let (h, o1) = to_umax_overflowing::<uint::From<uops::PopBit<N>>>();
+            let (h, o1) = to_umax_overflowing::<uint::From<expr::PopBit<N>>>();
             let (t, o2) = h.overflowing_mul(2);
-            let (n, o3) = t.overflowing_add(is_nonzero::<uops::LastBit<N>>() as _);
+            let (n, o3) = t.overflowing_add(is_nonzero::<expr::LastBit<N>>() as _);
             (n, o1 || o2 || o3)
         } else {
             (0, false)
@@ -75,10 +75,10 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
                 doit::<
                     uint::From<
                         // Pop a digit
-                        uops::Div<N, uint::lit!(10)>,
+                        expr::Div<N, uint::lit!(10)>,
                     >,
                 >(),
-                &[b'0' + to_usize::<uops::Rem<N, uint::lit!(10)>>().unwrap() as u8],
+                &[b'0' + to_usize::<expr::Rem<N, uint::lit!(10)>>().unwrap() as u8],
             ];
         }
         const fn doit<N: Uint>() -> &'static [u8] {
@@ -168,12 +168,12 @@ pub const fn cmp<L: NatExpr, R: NatExpr>() -> Ordering {
                     false => Ordering::Equal,
                 }
             } else {
-                match doit::<From<uops::PopBit<L>>, From<uops::PopBit<R>>>() {
+                match doit::<From<expr::PopBit<L>>, From<expr::PopBit<R>>>() {
                     it @ (Ordering::Less | Ordering::Greater) => it,
                     Ordering::Equal => {
                         match (
-                            is_nonzero::<uops::LastBit<L>>(),
-                            is_nonzero::<uops::LastBit<R>>(),
+                            is_nonzero::<expr::LastBit<L>>(),
+                            is_nonzero::<expr::LastBit<R>>(),
                         ) {
                             (true, true) | (false, false) => Ordering::Equal,
                             (true, false) => Ordering::Greater,

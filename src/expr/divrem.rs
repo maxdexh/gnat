@@ -77,7 +77,7 @@ pub type _Rem<L, R> = If<
 /// # Errors
 /// Dividing by zero gives a "overflow while evaluating" error.
 /// ```compile_fail,E0275
-/// use gnat::{uops::Rem, uint, small::*};
+/// use gnat::{expr::Rem, uint, small::*};
 /// const _: fn(uint::From<Rem<U1, U0>>) = |_| {};
 /// ```
 #[doc(alias = "%")]
@@ -104,7 +104,7 @@ pub type _Div<L, R> = If<
 /// # Errors
 /// Dividing by zero gives a "overflow while evaluating" error.
 /// ```compile_fail,E0275
-/// use gnat::{uops::Div, uint, small::*};
+/// use gnat::{expr::Div, uint, small::*};
 /// const _: fn(uint::From<Div<U1, U0>>) = |_| {};
 /// ```
 #[doc(alias = "/")]

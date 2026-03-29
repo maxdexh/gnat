@@ -32,9 +32,9 @@ mod utils;
 pub mod array;
 pub mod condty;
 pub mod consts;
+pub mod expr;
 pub mod small;
 pub mod uint;
-pub mod uops;
 
 /// A type-level non-negative integer
 ///
@@ -52,7 +52,7 @@ pub trait Uint: Sized + 'static + internals::UintSealed + NatExpr<Eval = Self> {
 /// A type that can be turned into a [`Uint`]
 ///
 /// This is not only a conversion trait, but forms an important part in how most operations are
-/// implemented. See the [`uops`] module.
+/// implemented. See the [`expr`] module.
 #[diagnostic::on_unimplemented(
     message = "Cannot convert `{Self}` to a `Uint`",
     label = "To be used like a `Uint`, `{Self}` must implement `NatExpr`"

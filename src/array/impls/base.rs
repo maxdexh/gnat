@@ -62,8 +62,8 @@ where
     /// Creating an oversized array of `()`
     /// ```
     /// #![recursion_limit = "1024"]
-    /// use gnat::{array::*, uint, uops, consts::{PtrBits, UsizeMax}};
-    /// type LargeSize = uint::From<uops::Shl<uint::lit!(1), PtrBits>>;
+    /// use gnat::{array::*, uint, expr, consts::{PtrBits, UsizeMax}};
+    /// type LargeSize = uint::From<expr::Shl<uint::lit!(1), PtrBits>>;
     /// assert!(uint::to_usize::<LargeSize>().is_none());
     /// let arr = Arr::<_, LargeSize>::of(());
     /// let ArrConcat(most, [()]): ArrConcat<CopyArr<_, UsizeMax>, _> = arr.retype();
@@ -135,16 +135,16 @@ where
     /// Converting a [`Uint`] to a string in binary, at compile time, with arbitrary length.
     /// ```
     /// extern crate generic_upper_bound as gub;
-    /// use gnat::{NatExpr, Uint, uint, uops, array::{Arr, ArrApi}};
+    /// use gnat::{NatExpr, Uint, uint, expr, array::{Arr, ArrApi}};
     /// use core::mem::MaybeUninit;
     ///
-    /// type BinaryLen<N> = uint::From<uops::BaseLen<uint::lit!(2), N>>;
+    /// type BinaryLen<N> = uint::From<expr::BaseLen<uint::lit!(2), N>>;
     /// const fn to_binary_arr<N: Uint>() -> Arr<u8, BinaryLen<N>> {
     ///     let last_bit = [
-    ///         b'0' + uint::is_nonzero::<uops::LastBit::<N>>() as u8
+    ///         b'0' + uint::is_nonzero::<expr::LastBit::<N>>() as u8
     ///     ];
-    ///     if uint::is_nonzero::<uops::PopBit<N>>() {
-    ///         to_binary_arr::<uint::From<uops::PopBit<N>>>()
+    ///     if uint::is_nonzero::<expr::PopBit<N>>() {
+    ///         to_binary_arr::<uint::From<expr::PopBit<N>>>()
     ///             .concat(last_bit)
     ///             .try_retype()
     ///             .unwrap()

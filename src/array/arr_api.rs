@@ -211,7 +211,7 @@ macro_rules! decl_retype {
         /// discriminant, so there is no niche optimization benifit from using an option (or ZST error
         /// type).
         $($mods)* fn $try_retype<Src, Dst>(src: $ty!(typ, Src)) -> CondResult<
-            crate::uops::Eq<Src::Length, Dst::Length>,
+            crate::expr::Eq<Src::Length, Dst::Length>,
             $ty!(typ, Dst),
             $ty!(typ, Src),
         >

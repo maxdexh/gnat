@@ -4,7 +4,7 @@
 
 #[allow(unused_imports)] // for docs
 use crate::{NatExpr, Uint};
-use crate::{small::*, uint, uops};
+use crate::{expr, small::*, uint};
 
 /// Holds a const [`u128`]
 ///
@@ -28,13 +28,13 @@ impl NatExpr for ConstBool<false> {
 }
 
 /// [`usize::BITS`] as a [`Uint`]
-pub type PtrBits = uint::From<uops::Shl<ConstUsize<{ size_of::<usize>() }>, uint::lit!(3)>>;
+pub type PtrBits = uint::From<expr::Shl<ConstUsize<{ size_of::<usize>() }>, uint::lit!(3)>>;
 
 /// [`usize::MAX`] as a [`Uint`]
-pub type UsizeMax = uint::From<uops::SatSub<uops::Shl<U1, PtrBits>, U1>>;
+pub type UsizeMax = uint::From<expr::SatSub<expr::Shl<U1, PtrBits>, U1>>;
 
 /// [`isize::MAX`] as a [`Uint`]
-pub type IsizeMax = uint::From<uops::PopBit<UsizeMax>>;
+pub type IsizeMax = uint::From<expr::PopBit<UsizeMax>>;
 
 #[test]
 fn test_usize_max() {
@@ -50,8 +50,8 @@ macro_rules! gen_maxes {
         $(
             #[doc = concat!("[`", stringify!($prim), "::MAX`] as a [`Uint`]")]
             pub type $name = uint::From<
-                crate::uops::_DecUnchecked<
-                    crate::uops::Shl<U1, $bits>
+                crate::expr::_DecUnchecked<
+                    crate::expr::Shl<U1, $bits>
                 >
             >;
         )*

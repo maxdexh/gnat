@@ -25,7 +25,7 @@
 //! - [`PushBit<N, B>`] pushes [`B::Eval`](NatExpr) as a bit to the end of [`N::Eval`](NatExpr)
 //!     - Evaluates like `2 * N.eval() + (B.eval() != 0) as _`
 //! - [`If<C, T, F>`] evaluates to [`T::Eval`](NatExpr) if `C` is nonzero, otherwise
-//!   to [`F::NatExpr`](NatExpr). Only the necessary [`NatExpr::Eval`] projection is accessed.
+//!   to [`F::Eval`](NatExpr). Only the necessary [`NatExpr::Eval`] projection is accessed.
 //!     - Equivalent like `if C != 0 { T.eval() } else { F.eval() }`
 //!
 //! These primitives, together with [`NatExpr`] implementations based on them (and [`uint::From`]),
@@ -42,7 +42,7 @@
 //! computed when it is projected to [`NatExpr::NatExpr`]. For example, consider the following
 //! implementation of [`BitAnd`]:
 //! ```
-//! use gnat::{NatExpr, small::*, uops::*, uint};
+//! use gnat::{NatExpr, small::*, expr::*, uint};
 //! // MyBitAnd is a struct implementing NatExpr, i.e. a lazy operation
 //! pub struct MyBitAnd<L, R>(L, R);
 //! impl<L: NatExpr, R: NatExpr> NatExpr for MyBitAnd<L, R> {
@@ -67,7 +67,7 @@
 //! check_input::<uint::lit!(0b10101000110111111), uint::lit!(0b11110111011111)>()
 //! ```
 //! Because `MyBitAnd` is [`NatExpr`] here and [`If`] works by only evaluating
-//! [`NatExpr::NatExpr`] for the branch that is needed for the output, this will
+//! [`NatExpr::Eval`] for the branch that is needed for the output, this will
 //! safely exit when `L` becomes 0.
 //!
 //! #### Evaluating recursive arguments
@@ -112,7 +112,7 @@
 //!
 //! # Complete example implementation of [`BitAnd`]
 //! ```
-//! use gnat::{NatExpr, small::*, uops::*, uint};
+//! use gnat::{NatExpr, small::*, expr::*, uint};
 //! pub struct _MyBitAnd<L, R>(L, R); // hide this in a private module
 //! impl<L: NatExpr, R: NatExpr> NatExpr for _MyBitAnd<L, R> {
 //!     type Eval = uint::From<If<
@@ -190,7 +190,7 @@ macro_rules! lazy {
     ) => {
         $(#[$attr])*
         pub struct $Name<$($P $(= $Def)?),*>($($P),*);
-        crate::uops::lazy_impl! {
+        crate::expr::lazy_impl! {
             type $Name<$($P),*> = $Val;
         }
     };
@@ -200,13 +200,13 @@ pub(crate) use lazy;
 /// Variadic [`Opaque`]
 macro_rules! VarOpaque {
     ($($LazyBase:ident)::+<$($P:ident),* $(,)?>) => {
-        crate::uops::VarOpaque!(
+        crate::expr::VarOpaque!(
             @$($P)*,
             $($LazyBase)::+<$($P),*>
         )
     };
     (@$P:ident $($Ps:ident)*, $Out:ty) => {
-        crate::uops::Opaque<$P, crate::uops::VarOpaque!(@$($Ps)*, $Out)>
+        crate::expr::Opaque<$P, crate::expr::VarOpaque!(@$($Ps)*, $Out)>
     };
     (@, $Out:ty) => {
         $Out
@@ -233,9 +233,9 @@ macro_rules! opaque {
         #[cfg(test)]
         #[allow(unused)] // Ensure that LazyBase is spanned for LSP
         const _: () = { use $LazyBase; };
-        crate::uops::lazy! {
+        crate::expr::lazy! {
             $(#[$attr])*
-            pub type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = crate::uops::VarOpaque!($LazyBase<$($P),*>);
+            pub type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = crate::expr::VarOpaque!($LazyBase<$($P),*>);
         }
     };
 }
@@ -247,7 +247,7 @@ macro_rules! test_op {
         $v:vis $kw:ident $TypeName:ident<$($P:ident $(= $Def:ty)?),* $(,)?> $($rest:tt)*
     ) => {
         #[cfg(test)]
-        crate::uops::testing::test_op! { $test_name: $($P)*, $TypeName<$($P),*>, $($args)* }
+        crate::expr::testing::test_op! { $test_name: $($P)*, $TypeName<$($P),*>, $($args)* }
 
         $(#[$attr])*
         $v $kw $TypeName<$($P $(= $Def)?),*> $($rest)*
@@ -261,7 +261,7 @@ macro_rules! base_case {
         $v:vis type $Name:ident<$($P:ident $(: $Bound:path)? $(= $Def:ty)?),* $(,)?> $(: $OutBound:path)? = $Val:ty;
     ) => {
         $(#[$attr])*
-        $v type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = crate::uops::If<
+        $v type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = crate::expr::If<
             $CheckZero,
             $Val,
             $IfZero,
