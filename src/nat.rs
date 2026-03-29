@@ -2,23 +2,23 @@
 
 use core::cmp::Ordering;
 
-use crate::{Nat, NatExpr, expr, maxint::Umax, uint};
+use crate::{Nat, NatExpr, expr, maxint::Umax, nat};
 
 /// Alias for [`NatExpr::Eval`].
-pub type From<N> = <N as NatExpr>::Eval;
+pub type Eval<N> = <N as NatExpr>::Eval;
 
 /// Turns an integer literal into a [`Nat`].
 ///
-/// If you have a small constant value that is not a literal, use [`uint::FromU128`].
+/// If you have a small constant value that is not a literal, use [`nat::EvalU128`].
 ///
 /// # Examples
 /// ```
 /// #![recursion_limit = "1024"] // `lit!` doesn't recurse, the type is just long
 ///
-/// use gnat::uint;
-/// assert_eq!(uint::to_u128::<uint::lit!(1)>(), Some(1));
+/// use gnat::nat;
+/// assert_eq!(nat::to_u128::<nat::lit!(1)>(), Some(1));
 /// assert_eq!(
-///     uint::to_u128::<uint::lit!(100000000000000000000000000000)>(),
+///     nat::to_u128::<nat::lit!(100000000000000000000000000000)>(),
 ///     Some(100000000000000000000000000000),
 /// )
 /// ```
@@ -29,8 +29,8 @@ macro_rules! __lit {
         $crate::__mac::proc::__lit! {
             ($l)
             ($crate::__mac::lit::_DirectAppend)
-            ($crate::small::U0)
-            ($crate::small::U1)
+            ($crate::small::N0)
+            ($crate::small::N1)
         }
     };
 }
@@ -39,7 +39,7 @@ pub use __lit as lit;
 const fn to_umax_overflowing<N: Nat>() -> (Umax, bool) {
     const {
         if is_nonzero::<N>() {
-            let (h, o1) = to_umax_overflowing::<uint::From<expr::PopBit<N>>>();
+            let (h, o1) = to_umax_overflowing::<nat::Eval<expr::PopBit<N>>>();
             let (t, o2) = h.overflowing_mul(2);
             let (n, o3) = t.overflowing_add(is_nonzero::<expr::LastBit<N>>() as _);
             (n, o1 || o2 || o3)
@@ -73,12 +73,12 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
             const VALUE: Self::Type = &[
                 // Recursively append the last digit
                 doit::<
-                    uint::From<
+                    nat::Eval<
                         // Pop a digit
-                        expr::Div<N, uint::lit!(10)>,
+                        expr::Div<N, nat::lit!(10)>,
                     >,
                 >(),
-                &[b'0' + to_usize::<expr::Rem<N, uint::lit!(10)>>().unwrap() as u8],
+                &[b'0' + to_usize::<expr::Rem<N, nat::lit!(10)>>().unwrap() as u8],
             ];
         }
         const fn doit<N: Nat>() -> &'static [u8] {
@@ -168,7 +168,7 @@ pub const fn cmp<L: NatExpr, R: NatExpr>() -> Ordering {
                     false => Ordering::Equal,
                 }
             } else {
-                match doit::<From<expr::PopBit<L>>, From<expr::PopBit<R>>>() {
+                match doit::<Eval<expr::PopBit<L>>, Eval<expr::PopBit<R>>>() {
                     it @ (Ordering::Less | Ordering::Greater) => it,
                     Ordering::Equal => {
                         match (

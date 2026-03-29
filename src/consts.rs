@@ -4,43 +4,43 @@
 
 #[allow(unused_imports)] // for docs
 use crate::{Nat, NatExpr};
-use crate::{expr, small::*, uint};
+use crate::{expr, nat, small::*};
 
 /// Holds a const [`u128`]
 ///
 /// Implements [`NatExpr`] for [`small`](crate::small) values.
-pub struct ConstU128<const N: u128>;
+pub struct U128<const N: u128>;
 
 /// Holds a const [`usize`]
 ///
 /// Implements [`NatExpr`] for [`small`](crate::small) values.
-pub struct ConstUsize<const N: usize>;
+pub struct Usize<const N: usize>;
 
 /// Holds a const [`bool`]
 ///
 /// Implements [`NatExpr`], using seperate impls for `true` and `false`.
-pub struct ConstBool<const B: bool>;
-impl NatExpr for ConstBool<true> {
-    type Eval = U1;
+pub struct Bool<const B: bool>;
+impl NatExpr for Bool<true> {
+    type Eval = N1;
 }
-impl NatExpr for ConstBool<false> {
-    type Eval = U0;
+impl NatExpr for Bool<false> {
+    type Eval = N0;
 }
 
 /// [`usize::BITS`] as a [`Nat`]
-pub type PtrBits = uint::From<expr::Shl<ConstUsize<{ size_of::<usize>() }>, uint::lit!(3)>>;
+pub type PtrBits = nat::Eval<expr::Shl<Usize<{ size_of::<usize>() }>, nat::lit!(3)>>;
 
 /// [`usize::MAX`] as a [`Nat`]
-pub type UsizeMax = uint::From<expr::SatSub<expr::Shl<U1, PtrBits>, U1>>;
+pub type UsizeMax = nat::Eval<expr::SatSub<expr::Shl<N1, PtrBits>, N1>>;
 
 /// [`isize::MAX`] as a [`Nat`]
-pub type IsizeMax = uint::From<expr::PopBit<UsizeMax>>;
+pub type IsizeMax = nat::Eval<expr::PopBit<UsizeMax>>;
 
 #[test]
 fn test_usize_max() {
-    assert_eq!(uint::to_usize::<PtrBits>(), Some(usize::BITS as usize));
-    assert_eq!(uint::to_usize::<UsizeMax>(), Some(usize::MAX));
-    assert_eq!(uint::to_usize::<IsizeMax>(), Some(isize::MAX as usize));
+    assert_eq!(nat::to_usize::<PtrBits>(), Some(usize::BITS as usize));
+    assert_eq!(nat::to_usize::<UsizeMax>(), Some(usize::MAX));
+    assert_eq!(nat::to_usize::<IsizeMax>(), Some(isize::MAX as usize));
 }
 
 macro_rules! gen_maxes {
@@ -49,30 +49,30 @@ macro_rules! gen_maxes {
     ] => {
         $(
             #[doc = concat!("[`", stringify!($prim), "::MAX`] as a [`Nat`]")]
-            pub type $name = uint::From<
+            pub type $name = nat::Eval<
                 crate::expr::_DecUnchecked<
-                    crate::expr::Shl<U1, $bits>
+                    crate::expr::Shl<N1, $bits>
                 >
             >;
         )*
         #[test]
         fn test_generated_maxes() {
             $(assert_eq!(
-                uint::to_u128::<$name>(),
+                nat::to_u128::<$name>(),
                 Some(<$prim>::MAX as u128),
             );)*
         }
     };
 }
 gen_maxes![
-    [I8Max, uint::lit!(7), i8],
-    [U8Max, uint::lit!(8), u8],
-    [I16Max, uint::lit!(15), i16],
-    [U16Max, uint::lit!(16), u16],
-    [I32Max, uint::lit!(31), i32],
-    [U32Max, uint::lit!(32), u32],
-    [I64Max, uint::lit!(63), i64],
-    [U64Max, uint::lit!(64), u64],
-    [I128Max, uint::lit!(127), i128],
-    [U128Max, uint::lit!(128), u128],
+    [I8Max, nat::lit!(7), i8],
+    [U8Max, nat::lit!(8), u8],
+    [I16Max, nat::lit!(15), i16],
+    [U16Max, nat::lit!(16), u16],
+    [I32Max, nat::lit!(31), i32],
+    [U32Max, nat::lit!(32), u32],
+    [I64Max, nat::lit!(63), i64],
+    [U64Max, nat::lit!(64), u64],
+    [I128Max, nat::lit!(127), i128],
+    [U128Max, nat::lit!(128), u128],
 ];

@@ -5,7 +5,7 @@ use super::*;
 type _AddIf<C, L, R> = If<C, add::_CarryAdd<L, R>, L>;
 
 // Double(N) := 2 * N
-type _Double<N> = PushBit<N, U0>;
+type _Double<N> = PushBit<N, N0>;
 
 /// ```text
 /// Mul(L, R) := L * R
@@ -17,7 +17,7 @@ type _Double<N> = PushBit<N, U0>;
 ///       = 2 * (H * R) + if P { R } else { 0 }
 ///       = AddIf(P, Double(H * R), R)
 /// ```
-#[apply(base_case! 0 == L => U0)] // 0 * R = 0
+#[apply(base_case! 0 == L => N0)] // 0 * R = 0
 #[apply(lazy)]
 pub type _Mul<L, R> = _AddIf<
     _P<L>,

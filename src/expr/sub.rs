@@ -33,12 +33,12 @@ use super::*;
 /// ```
 #[apply(base_case! 0 == R => If<C, _DecUnchecked<L>, L>)] // L - 0 - C = L - C = if C { L - 1 } else { L }
 #[apply(lazy)]
-pub type _SubUnchecked<L, R, C = U0> = PushBit<
+pub type _SubUnchecked<L, R, C = N0> = PushBit<
     _SubUnchecked<
         _H<L>,
         _H<R>,
         // Normalize recursive argument
-        uint::From<
+        nat::Eval<
             If<
                 _P<L>, //
                 _And<_P<R>, C>,
@@ -67,7 +67,7 @@ pub type AbsDiff<L, R> = _AbsDiff;
 pub type _SatSub<L, R> = If<
     _Lt<R, L>, //
     _SubUnchecked<L, R>,
-    U0,
+    N0,
 >;
 
 /// Type-level [`saturating_sub`](u128::saturating_sub)

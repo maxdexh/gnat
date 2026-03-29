@@ -1,7 +1,7 @@
 use super::*;
 
 /// Quad(N) := 4 * N
-type _Quad<N> = PushBit<PushBit<N, U0>, U0>;
+type _Quad<N> = PushBit<PushBit<N, N0>, N0>;
 
 /// ```text
 /// Square(N) := Pow(N, 2) = N * N
@@ -11,14 +11,14 @@ type _Quad<N> = PushBit<PushBit<N, U0>, U0>;
 /// If P = 1: Pow(N, 2) = Pow(2 * H + 1, 2) = 4 * Pow(H, 2) + 4 * H + 1
 /// If P = 0: Pow(N, 2) = Pow(2 * H, 2) = 4 * Pow(H, 2)
 /// ```
-#[apply(base_case! 0 == N => U0)] // 0 * 0 = 0
+#[apply(base_case! 0 == N => N0)] // 0 * 0 = 0
 #[apply(lazy)]
 pub type _Square<N> = If<
     _P<N>,
     _CarryAdd<
         _Quad<_Square<_H<N>>>,
         _Quad<_H<N>>, //
-        U1,
+        N1,
     >,
     _Quad<_Square<_H<N>>>,
 >;
@@ -38,7 +38,7 @@ type _MulIf<N, F, C> = If<C, _Mul<F, N>, N>;
 /// = if P { Square(Pow(B, H)) * B } else { Square(Pow(B, H)) }
 /// = MulIf(Square(Pow(B, H)), B, P)
 /// ```
-#[apply(base_case! 0 == E => U1)] // Pow(B, 0) = 1 (including if B = 0)
+#[apply(base_case! 0 == E => N1)] // Pow(B, 0) = 1 (including if B = 0)
 #[apply(lazy)]
 pub type _Pow<B, E> = _MulIf<
     _Square<_Pow<B, _H<E>>>, //

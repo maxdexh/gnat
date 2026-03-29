@@ -11,7 +11,7 @@ use super::*;
 /// See the [module level documentation](crate::expr) for details on how to combine
 /// primitive operations.
 #[apply(lazy)]
-pub type PopBit<N> = InternalOp!(uint::From<N>, PopBit);
+pub type PopBit<N> = InternalOp!(nat::Eval<N>, PopBit);
 
 /// Gets the last bit of a [`Nat`], thereby getting its [parity](https://en.wikipedia.org/wiki/Parity_(mathematics)).
 ///
@@ -24,7 +24,7 @@ pub type PopBit<N> = InternalOp!(uint::From<N>, PopBit);
 /// See the [module level documentation](crate::expr) for details on how to combine
 /// primitive operations.
 #[apply(lazy)]
-pub type LastBit<N> = InternalOp!(uint::From<N>, LastBit);
+pub type LastBit<N> = InternalOp!(nat::Eval<N>, LastBit);
 
 /// Pushes a single bit to the end of a [`Nat`].
 ///
@@ -37,14 +37,14 @@ pub type LastBit<N> = InternalOp!(uint::From<N>, LastBit);
 /// See the [module level documentation](crate::expr) for details on how to combine
 /// primitive operations.
 #[apply(lazy)]
-pub type PushBit<N, P> = InternalOp!(uint::From<P>, PushSelfAsBit<uint::From<N>>);
+pub type PushBit<N, P> = InternalOp!(nat::Eval<P>, PushSelfAsBit<nat::Eval<N>>);
 
 /// Conditionally evaluates to one of its arguments.
 ///
 /// This is a primitive operation.
 ///
-/// If `Cond` is truthy (nonzero), then `uint::From<If<Cond, Then, Else>>` is the same as
-/// `uint::From<Then>`. Otherwise, it is the same as `uint::From<Else>`.
+/// If `Cond` is truthy (nonzero), then `nat::Eval<If<Cond, Then, Else>>` is the same as
+/// `nat::Eval<Then>`. Otherwise, it is the same as `nat::Eval<Else>`.
 /// Only the resulting argument has its [`NatExpr::Eval`] implementation accessed,
 /// i.e. the other branch is not evaluated and thus cannot lead to cycles. This allows
 /// breaking out of recursively implemented operations.
@@ -54,9 +54,9 @@ pub type PushBit<N, P> = InternalOp!(uint::From<P>, PushSelfAsBit<uint::From<N>>
 ///
 /// # Opaqueness
 /// This operation is not opaque in `Then` and `Else`. If `Cond` is known, then
-/// `uint::From<If<Cond, Then, Else>>` normalizes as specified above.
+/// `nat::Eval<If<Cond, Then, Else>>` normalizes as specified above.
 #[apply(lazy)]
-pub type If<C, T, F> = InternalOp!(uint::From<C>, If<T, F>);
+pub type If<C, T, F> = InternalOp!(nat::Eval<C>, If<T, F>);
 
 /// Makes `Out` opaque with respect to the value of a parameter `P`.
 ///
@@ -68,47 +68,36 @@ pub type If<C, T, F> = InternalOp!(uint::From<C>, If<T, F>);
 ///
 /// See the [module level documentation](crate::expr) for details on opaqueness.
 #[apply(lazy)]
-pub type Opaque<P, Out> = uint::From<InternalOp!(uint::From<P>, Opaque<Out>)>;
+pub type Opaque<P, Out> = nat::Eval<InternalOp!(nat::Eval<P>, Opaque<Out>)>;
 
 #[test]
 fn opaqueness_tests() {
-    struct Wat<L, R, const CLAIM_EQ: bool>(L, R);
-    trait HasMethod {
-        const CONST: ();
+    struct Namespace<L, R>(L, R);
+    trait Fallback {
+        const PROVEN_IDENTICAL: bool;
     }
     // `Wat` has a trait const
-    impl<L, R, const CLAIM_EQ: bool> HasMethod for Wat<L, R, CLAIM_EQ> {
-        // Check that inequality was claimed
-        const CONST: () = assert!(!CLAIM_EQ);
+    impl<X> Namespace<X, X> {
+        const PROVEN_IDENTICAL: bool = true;
     }
-    // It also has an inherent method of the same name, but only if
-    // L and R are the same type! Inherent methods are resolved first,
-    // so this method is called if and only if the compiler can prove
-    // that L = R.
-    impl<L, const CLAIM_EQ: bool> Wat<L, L, CLAIM_EQ> {
-        // Check that equality was claimed
-        const CONST: () = assert!(CLAIM_EQ);
+    impl<L, R> Fallback for Namespace<L, R> {
+        const PROVEN_IDENTICAL: bool = false;
     }
-    macro_rules! check_eq {
-        ($lhs:ty, $rhs:ty) => {
-            _ = Wat::<$lhs, $rhs, true>::CONST
-        };
-    }
-    macro_rules! check_neq {
-        ($lhs:ty, $rhs:ty) => {
-            _ = Wat::<$lhs, $rhs, false>::CONST
+    macro_rules! check_proven_identical {
+        ($expect:expr, $lhs:ty, $rhs:ty) => {
+            assert!($expect == Namespace::<$lhs, $rhs>::PROVEN_IDENTICAL)
         };
     }
     fn accept<A: NatExpr, B: NatExpr>() {
         // types that are provably the same
-        check_eq!(uint::From<If<U1, A, B>>, uint::From<A>);
-        check_eq!(uint::From<If<U0, A, B>>, uint::From<B>);
-        check_eq!(uint::From<Opaque<U0, A>>, uint::From<A>);
+        check_proven_identical!(true, nat::Eval<If<N1, A, B>>, nat::Eval<A>);
+        check_proven_identical!(true, nat::Eval<If<N0, A, B>>, nat::Eval<B>);
+        check_proven_identical!(true, nat::Eval<Opaque<N0, A>>, nat::Eval<A>);
 
         // types that are not provably the same
-        check_neq!(uint::From<Opaque<B, A>>, uint::From<A>);
-        check_neq!(uint::From<Opaque<B, A>>, Opaque<A, A>);
-        check_neq!(uint::From<PopBit<PushBit<U0, A>>>, U0);
+        check_proven_identical!(false, nat::Eval<Opaque<B, A>>, nat::Eval<A>);
+        check_proven_identical!(false, nat::Eval<Opaque<B, A>>, Opaque<A, A>);
+        check_proven_identical!(false, nat::Eval<PopBit<PushBit<N0, A>>>, N0);
     }
-    accept::<uint::lit!(3), uint::lit!(7)>();
+    accept::<nat::lit!(3), nat::lit!(7)>();
 }

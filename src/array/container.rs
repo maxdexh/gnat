@@ -1,7 +1,7 @@
 use crate::{
     Nat,
     array::{helper::*, *},
-    uint,
+    nat,
 };
 use crate::{condty, expr, utils};
 use core::marker::PhantomData;
@@ -95,7 +95,7 @@ where
     }
 }
 
-pub type PopDigit<N> = uint::From<expr::_Shr<N, crate::consts::PtrBits>>;
+pub type PopDigit<N> = nat::Eval<expr::_Shr<N, crate::consts::PtrBits>>;
 
 #[utils::apply(expr::lazy)]
 pub type _DigitLenRec<N> = _DigitLen<PopDigit<N>>;
@@ -103,9 +103,9 @@ pub type _DigitLenRec<N> = _DigitLen<PopDigit<N>>;
 pub type _DigitLen<N> = expr::If<
     N,
     expr::_Inc<_DigitLenRec<N>>, //
-    uint::lit!(0),
+    nat::lit!(0),
 >;
-pub type DigitLen<N> = uint::From<_DigitLen<N>>;
+pub type DigitLen<N> = nat::Eval<_DigitLen<N>>;
 
 pub(crate) struct BigCounter<N: Nat> {
     /// # Safety
@@ -167,10 +167,10 @@ impl<N: Nat> BigCounter<N> {
         const {
             // SAFETY: This construction ensures self == N
             Self {
-                digits: if uint::is_nonzero::<N>() {
+                digits: if nat::is_nonzero::<N>() {
                     BigCounter::<PopDigit<N>>::max()
                         .digits
-                        .concat([uint::to_usize_overflowing::<N>().0])
+                        .concat([nat::to_usize_overflowing::<N>().0])
                         .try_retype()
                         .unwrap()
                 } else {

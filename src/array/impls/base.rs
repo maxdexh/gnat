@@ -8,7 +8,7 @@ use core::mem::MaybeUninit;
 use crate::{
     Nat,
     array::{helper::*, *},
-    uint, utils,
+    nat, utils,
 };
 
 impl<T, N: Nat, A> ArrApi<A>
@@ -25,16 +25,16 @@ where
     ///
     /// # Examples
     /// ```
-    /// use gnat::{array::*, uint};
+    /// use gnat::{array::*, nat};
     ///
-    /// let arr = CopyArr::<_, uint::lit!(20_000)>::from_fn(|i| i);
+    /// let arr = CopyArr::<_, nat::lit!(20_000)>::from_fn(|i| i);
     /// assert_eq!(arr.try_into_builtin::<19_999>(), Err(arr));
     /// assert_eq!(arr.try_into_builtin::<20_001>(), Err(arr));
     /// let builtin: [_; 20_000] = arr.try_into_builtin().unwrap();
     /// assert_eq!(builtin, core::array::from_fn::<_, 20_000, _>(|i| i));
     /// ```
     pub const fn try_into_builtin<const M: usize>(self) -> Result<[T; M], Self> {
-        if const { uint::cmp_usize::<N>(M).is_eq() } {
+        if const { nat::cmp_usize::<N>(M).is_eq() } {
             Ok(
                 // SAFETY: `Array` invariant
                 unsafe { utils::union_transmute!(Self, [T; M], self) },
@@ -54,17 +54,17 @@ where
     /// # Examples
     /// Creating an array of integers.
     /// ```
-    /// use gnat::{array::*, uint};
-    /// let arr = Arr::<_, uint::lit!(4)>::of(1);
+    /// use gnat::{array::*, nat};
+    /// let arr = Arr::<_, nat::lit!(4)>::of(1);
     /// assert_eq!(arr, [1; 4]);
     /// ```
     ///
     /// Creating an oversized array of `()`
     /// ```
     /// #![recursion_limit = "1024"]
-    /// use gnat::{array::*, uint, expr, consts::{PtrBits, UsizeMax}};
-    /// type LargeSize = uint::From<expr::Shl<uint::lit!(1), PtrBits>>;
-    /// assert!(uint::to_usize::<LargeSize>().is_none());
+    /// use gnat::{array::*, nat, expr, consts::{PtrBits, UsizeMax}};
+    /// type LargeSize = nat::Eval<expr::Shl<nat::lit!(1), PtrBits>>;
+    /// assert!(nat::to_usize::<LargeSize>().is_none());
     /// let arr = Arr::<_, LargeSize>::of(());
     /// let ArrConcat(most, [()]): ArrConcat<CopyArr<_, UsizeMax>, _> = arr.retype();
     /// assert_eq!(most.as_slice().len(), usize::MAX);
@@ -135,16 +135,16 @@ where
     /// Converting a [`Nat`] to a string in binary, at compile time, with arbitrary length.
     /// ```
     /// extern crate generic_upper_bound as gub;
-    /// use gnat::{NatExpr, Nat, uint, expr, array::{Arr, ArrApi}};
+    /// use gnat::{NatExpr, Nat, nat, expr, array::{Arr, ArrApi}};
     /// use core::mem::MaybeUninit;
     ///
-    /// type BinaryLen<N> = uint::From<expr::BaseLen<uint::lit!(2), N>>;
+    /// type BinaryLen<N> = nat::Eval<expr::BaseLen<nat::lit!(2), N>>;
     /// const fn to_binary_arr<N: Nat>() -> Arr<u8, BinaryLen<N>> {
     ///     let last_bit = [
-    ///         b'0' + uint::is_nonzero::<expr::LastBit::<N>>() as u8
+    ///         b'0' + nat::is_nonzero::<expr::LastBit::<N>>() as u8
     ///     ];
-    ///     if uint::is_nonzero::<expr::PopBit<N>>() {
-    ///         to_binary_arr::<uint::From<expr::PopBit<N>>>()
+    ///     if nat::is_nonzero::<expr::PopBit<N>>() {
+    ///         to_binary_arr::<nat::Eval<expr::PopBit<N>>>()
     ///             .concat(last_bit)
     ///             .try_retype()
     ///             .unwrap()
@@ -164,7 +164,7 @@ where
     ///     }
     ///     impl<N: Nat> gub::AcceptUpperBound for Doit<N> {
     ///         type Output = &'static [MaybeUninit<u8>];
-    ///         const DESIRED_GENERIC: usize = uint::to_usize::<BinaryLen<N>>().unwrap();
+    ///         const DESIRED_GENERIC: usize = nat::to_usize::<BinaryLen<N>>().unwrap();
     ///         type Eval<const ARRLEN: usize> = Doit<N, ARRLEN>;
     ///     }
     ///     let slice: &'static [MaybeUninit<u8>] = gub::eval_with_upper_bound::<Doit<N::Eval>>();
@@ -182,7 +182,7 @@ where
     ///         Err(_) => unreachable!(),
     ///     }
     /// }
-    /// assert_eq!(to_str_binary::<uint::lit!(0b100100010100)>(), "100100010100");
+    /// assert_eq!(to_str_binary::<nat::lit!(0b100100010100)>(), "100100010100");
     /// ```
     pub const fn into_uninit_builtin<const M: usize>(self) -> [MaybeUninit<T>; M] {
         // SAFETY:

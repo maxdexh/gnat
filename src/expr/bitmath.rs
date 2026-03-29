@@ -13,7 +13,7 @@
 use super::*;
 
 /// `BitAnd(L, R) := Bitwise(And, L, R)`, see module level
-#[apply(base_case! 0 == L => U0)] // 0 & R = 0
+#[apply(base_case! 0 == L => N0)] // 0 & R = 0
 #[apply(lazy)]
 pub type _BitAnd<L, R> = PushBit<
     _BitAnd<_H<R>, _H<L>>, // A & B = B & A, switching will terminate faster
@@ -62,7 +62,7 @@ pub type BitXor<L, R> = _BitXor;
 /// CountOnes(N) = CountOnes(Append(H(N), P(N)))
 ///              = CountOnes(H(N)) + P(N)
 /// ```
-#[apply(base_case! 0 == N => U0)] // CountOnes(0) = 0
+#[apply(base_case! 0 == N => N0)] // CountOnes(0) = 0
 #[apply(lazy)]
 pub type _CountOnes<N> = add::_PlusBit<
     _CountOnes<_H<N>>, //

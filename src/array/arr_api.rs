@@ -286,7 +286,7 @@ macro_rules! decl_from_slice {
         $($mods)* fn $name<A: Array>(slice: $ty!(typ, [A::Item])) -> $Res!(type, $ty!(typ, A), $ty!(typ, [A::Item])) {
             arr_impl_ubcheck::<A>();
 
-            match crate::uint::to_usize::<A::Length>() {
+            match crate::nat::to_usize::<A::Length>() {
                 Some(arr_len) if arr_len == slice.len() => {
                     // SAFETY:
                     // - Pointer cast with same item and length.

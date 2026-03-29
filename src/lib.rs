@@ -33,19 +33,19 @@ pub mod array;
 pub mod condty;
 pub mod consts;
 pub mod expr;
+pub mod nat;
 pub mod small;
-pub mod uint;
 
-/// A type-level non-negative integer
+/// A type-level non-negative integer.
 ///
 /// See the [crate level documentation](crate).
 ///
-/// It is guaranteed (including to unsafe code) that there is a one-to-one correspondence between
-/// the non-negative integers and the set of types that can be observed to implement this trait.
+/// It is guaranteed that there is a one-to-one correspondence between
+/// the natural numbers including zero and the types that implement this trait.
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a `Nat`",
     label = "`{Self}` was expected to implement `Nat` directly",
-    note = "Consider using `uint::From<{Self}>` if `{Self}: NatExpr`"
+    note = "Consider using `nat::Eval<{Self}>` if `{Self}: NatExpr`"
 )]
 pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 

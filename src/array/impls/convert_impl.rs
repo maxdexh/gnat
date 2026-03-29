@@ -257,7 +257,7 @@ where
 {
     type Error = alloc::vec::Vec<T>;
     fn try_from(mut value: alloc::vec::Vec<T>) -> Result<Self, Self::Error> {
-        if crate::uint::cmp_usize::<A::Length>(value.len()).is_eq() {
+        if crate::nat::cmp_usize::<A::Length>(value.len()).is_eq() {
             // SAFETY: set_len(0) is always safe and effectively forgets the elements,
             // ensuring that the drop of `Vec` only frees the allocation.
             unsafe { value.set_len(0) }
@@ -276,7 +276,7 @@ where
 {
     type Error = alloc::vec::Vec<T>;
     fn try_from(value: alloc::vec::Vec<T>) -> Result<Self, Self::Error> {
-        if crate::uint::cmp_usize::<A::Length>(value.len()).is_eq() {
+        if crate::nat::cmp_usize::<A::Length>(value.len()).is_eq() {
             value
                 .into_boxed_slice()
                 .try_into()

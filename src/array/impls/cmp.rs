@@ -1,10 +1,10 @@
-use crate::{NatExpr, array::*, consts::ConstUsize};
+use crate::{NatExpr, array::*, consts::Usize};
 
 fn partial_eq_impl<A: Array, U>(lhs: &ArrApi<A>, rhs: &[U]) -> bool
 where
     A::Item: PartialEq<U>,
 {
-    (const { crate::uint::to_usize::<A::Length>().is_some() } && lhs.as_slice() == rhs)
+    (const { crate::nat::to_usize::<A::Length>().is_some() } && lhs.as_slice() == rhs)
 }
 
 impl<A, U> PartialEq<[U]> for ArrApi<A>
@@ -29,7 +29,7 @@ impl<A, U, const N: usize> PartialEq<[U; N]> for ArrApi<A>
 where
     A: Array,
     A::Item: PartialEq<U>,
-    ConstUsize<N>: NatExpr<Eval = A::Length>,
+    Usize<N>: NatExpr<Eval = A::Length>,
 {
     fn eq(&self, other: &[U; N]) -> bool {
         partial_eq_impl(self, other)
@@ -42,9 +42,9 @@ where
     A::Item: PartialEq<B::Item>,
 {
     fn eq(&self, other: &ArrApi<B>) -> bool {
-        if const { crate::uint::cmp::<A::Length, B::Length>().is_ne() } {
+        if const { crate::nat::cmp::<A::Length, B::Length>().is_ne() } {
             false
-        } else if const { crate::uint::to_usize::<A::Length>().is_some() } {
+        } else if const { crate::nat::to_usize::<A::Length>().is_some() } {
             self.as_slice() == other.as_slice()
         } else {
             let mut lhs = container::ArrRefConsumer::new(self);

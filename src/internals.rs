@@ -40,7 +40,7 @@ pub trait _Nat: _NatArrs + 'static {
     // These are exposed only through structs implementing NatExpr, so we can
     // do the NatExpr conversion on the result here directly. This has the
     // advantage of making errors more readable, since if this was `: NatExpr`,
-    // then `uint::From<If<C, T, F>>` would normalize to
+    // then `nat::Eval<If<C, T, F>>` would normalize to
     // <<< C as NatSealed>::__Nat
     //       as _Nat>::IfImpl<T, F>
     //       as NatExpr>::Eval
@@ -56,7 +56,7 @@ pub trait _Nat: _NatArrs + 'static {
     // PushBit<N, P> has to project through N and P to make the operation
     // opaque with respect to both, so simply implementing with a helper
     // `_ToBit: _Bit` doesn't work, because e.g.
-    // `uint::From<PopBit<PushBit<N, _1>>>` would normalize to `w`.
+    // `nat::Eval<PopBit<PushBit<N, _1>>>` would normalize to `w`.
     type _DirectAppend<B: _Bit>: _Nat;
 }
 

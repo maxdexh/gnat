@@ -1,15 +1,15 @@
 use super::*;
 
-pub type _And<L, R> = If<L, R, U0>;
-pub type _Or<L, R> = If<L, U1, R>;
-pub type _Xor<L, R> = uint::From<If<L, IsZero<R>, R>>;
-pub type _Xnor<L, R> = uint::From<If<L, R, IsZero<R>>>;
-pub type _Xor3<A, B, C> = uint::From<If<A, _Xnor<B, C>, _Xor<B, C>>>;
+pub type _And<L, R> = If<L, R, N0>;
+pub type _Or<L, R> = If<L, N1, R>;
+pub type _Xor<L, R> = nat::Eval<If<L, IsZero<R>, R>>;
+pub type _Xnor<L, R> = nat::Eval<If<L, R, IsZero<R>>>;
+pub type _Xor3<A, B, C> = nat::Eval<If<A, _Xnor<B, C>, _Xor<B, C>>>;
 
 /// Eager version of `PopBit`.
-pub type _H<N> = uint::From<PopBit<N>>;
+pub type _H<N> = nat::Eval<PopBit<N>>;
 /// Eager version of `LastBit`.
-pub type _P<N> = uint::From<LastBit<N>>;
+pub type _P<N> = nat::Eval<LastBit<N>>;
 
 #[apply(lazy)]
 // H := H(N), P := P(N), N > 0.
@@ -26,6 +26,6 @@ pub type _P<N> = uint::From<LastBit<N>>;
 pub type _DecUnchecked<N> = If<
     //
     _P<N>,
-    PushBit<_H<N>, U0>,
-    PushBit<_DecUnchecked<_H<N>>, U1>,
+    PushBit<_H<N>, N0>,
+    PushBit<_DecUnchecked<_H<N>>, N1>,
 >;

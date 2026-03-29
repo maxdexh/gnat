@@ -7,7 +7,7 @@ unsafe impl<T, const L: usize> ArrayLayout for [T; L] {
 // SAFETY: Allowed by definition
 unsafe impl<T, N: crate::Nat, const L: usize> Array for [T; L]
 where
-    crate::consts::ConstUsize<L>: crate::NatExpr<NatExpr = N>,
+    crate::consts::Usize<L>: crate::NatExpr<NatExpr = N>,
 {
     type Length = N;
 }

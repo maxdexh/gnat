@@ -13,8 +13,8 @@ use super::*;
 #[apply(lazy)]
 pub type _Inc<N> = If<
     _P<N>, //
-    PushBit<_Inc<_H<N>>, U0>,
-    PushBit<_H<N>, U1>,
+    PushBit<_Inc<_H<N>>, N0>,
+    PushBit<_H<N>, N1>,
 >;
 
 pub(crate) type _PlusBit<N, C> = If<C, _Inc<N>, N>;
@@ -37,13 +37,13 @@ pub(crate) type _PlusBit<N, C> = If<C, _Inc<N>, N>;
 /// ```
 #[apply(base_case! 0 == L => _PlusBit<R, C>)] // 0 + R + C = R + C
 #[apply(lazy)]
-pub type _CarryAdd<L, R, C = U0> = PushBit<
+pub type _CarryAdd<L, R, C = N0> = PushBit<
     // LH + RH + X / 2
     _CarryAdd<
         _H<R>, // swap args to converge faster
         _H<L>,
         // Normalize recursive argument
-        uint::From<
+        nat::Eval<
             // Since X = LP + RP + C <= 3, we have X / 2 being either 0 or 1,
             // and therefore X / 2 = 1 iff LP + RP + C >= 2, else X / 2 = 0.
             If<

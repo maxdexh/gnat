@@ -1,7 +1,7 @@
 use super::*;
 
 /// DoubleIf(N, C) := if C { 2 * N } else { N }
-type _DoubleIf<N, C> = If<C, PushBit<N, U0>, N>;
+type _DoubleIf<N, C> = If<C, PushBit<N, N0>, N>;
 
 /// `Shl(L, R) := L << R := L * Pow(2, R)`
 ///
@@ -34,8 +34,8 @@ type _DoubleIf<N, C> = If<C, PushBit<N, U0>, N>;
 #[apply(lazy)]
 pub type _Shl<L, R> = _DoubleIf<
     // NOTE: From testing, this is the fastest known way to write this recursion
-    // The inner Shl is normalized only on the next iteration by uint::From<L>
-    _Shl<_Shl<uint::From<L>, _H<R>>, _H<R>>,
+    // The inner Shl is normalized only on the next iteration by nat::Eval<L>
+    _Shl<_Shl<nat::Eval<L>, _H<R>>, _H<R>>,
     _P<R>,
 >;
 
@@ -59,7 +59,7 @@ type _HalfIf<N, C> = If<C, PopBit<N>, N>;
 #[apply(lazy)]
 pub type _Shr<L, R> = _HalfIf<
     // NOTE: See note on _Shl
-    _Shr<_Shr<uint::From<L>, _H<R>>, _H<R>>,
+    _Shr<_Shr<nat::Eval<L>, _H<R>>, _H<R>>,
     _P<R>,
 >;
 

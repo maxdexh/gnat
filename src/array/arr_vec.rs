@@ -7,7 +7,7 @@ use const_util::result::expect_ok;
 use crate::{
     Nat,
     array::{helper::*, *},
-    const_fmt, uint, utils,
+    const_fmt, nat, utils,
 };
 
 /// Wraps the drop impl so it isn't exposed as a trait bound
@@ -190,9 +190,9 @@ where
     ///
     /// # Examples
     /// ```
-    /// use gnat::{array::*, uint};
+    /// use gnat::{array::*, nat};
     ///
-    /// type A = Arr<i32, uint::lit!(10)>;
+    /// type A = Arr<i32, nat::lit!(10)>;
     /// assert_eq!(ArrVecApi::<A>::new(), []);
     /// ```
     pub const fn new() -> Self {
@@ -454,7 +454,7 @@ where
     ///     None
     /// );
     /// assert_eq!(
-    ///     ArrVecApi::new_full(Arr::<_, U20>::from_fn(|i| i)).pop(),
+    ///     ArrVecApi::new_full(Arr::<_, N20>::from_fn(|i| i)).pop(),
     ///     Some(19)
     /// );
     /// ```
@@ -516,7 +516,7 @@ where
     where
         Dst: Array<Item = T>,
     {
-        if uint::cmp_usize::<Dst::Length>(self.len()).is_ge() {
+        if nat::cmp_usize::<Dst::Length>(self.len()).is_ge() {
             let (arr, len) = self.into_uninit_parts();
             // SAFETY: new cap >= len, so we must still have `len` valid elements.
             Ok(unsafe { ArrVecApi::from_uninit_parts(arr.retype_uninit(), len) })

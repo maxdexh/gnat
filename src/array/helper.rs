@@ -1,12 +1,12 @@
 use core::marker::PhantomData;
 
-use crate::{Nat, array::*, const_fmt, uint};
+use crate::{Nat, array::*, const_fmt, nat};
 
 #[track_caller]
 pub(crate) const fn arr_len<A: Array>() -> usize {
     const fn doit<N: Nat>() -> usize {
         let precalc = const {
-            match uint::to_usize::<N>() {
+            match nat::to_usize::<N>() {
                 Some(n) => Ok(n),
                 None => Err(const_fmt::fmt![
                     "Array length ",
@@ -37,7 +37,7 @@ pub(crate) const fn arr_impl_ubcheck<A: Array>() {
         );
         let item_size = size_of::<A::Item>();
         let arr_size = size_of::<A>();
-        if let Some(arr_len) = uint::to_usize::<A::Length>() {
+        if let Some(arr_len) = nat::to_usize::<A::Length>() {
             let calc_size = arr_len.checked_mul(item_size);
             assert!(
                 calc_size.is_some() && arr_size == calc_size.unwrap(),

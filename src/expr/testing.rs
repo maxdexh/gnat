@@ -1,17 +1,18 @@
 #![cfg(test)]
 
-use crate::{Nat, expr, small::*, uint};
+use crate::{Nat, expr, nat, small::*};
 
-pub(crate) type SatDec<N> = uint::From<expr::If<N, expr::_DecUnchecked<N>, U0>>;
+pub(crate) type SatDec<N> = nat::Eval<expr::If<N, expr::_DecUnchecked<N>, N0>>;
 
+/// The test runner for all operations uses [`SatDec`] to traverse a range of inputs.
+/// This test is there to ensure that it behaves correctly.
 #[test]
-/// Make sure the test runner is actually testing anything, since it uses SatDec to traverse ranges.
 fn test_satdec() {
     fn doit<const N: u128, V: Nat>()
     where
-        crate::consts::ConstU128<N>: crate::NatExpr<Eval = V>,
+        crate::consts::U128<N>: crate::NatExpr<Eval = V>,
     {
-        assert_eq!(uint::to_u128::<SatDec<V>>(), Some(N.saturating_sub(1)),)
+        assert_eq!(nat::to_u128::<SatDec<V>>(), Some(N.saturating_sub(1)),)
     }
     macro_rules! tests {
         ($($val:literal)*) => {$(
@@ -21,20 +22,20 @@ fn test_satdec() {
     tests! { 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 }
 }
 
-const MORE_TESTS: bool = option_env!("more_uint_tests").is_some();
-const SKIP_TESTS: bool = option_env!("skip_uint_tests").is_some();
-pub(crate) type DefaultHi = uint::From<
+const MORE_TESTS: bool = option_env!("more_nat_tests").is_some();
+const SKIP_TESTS: bool = option_env!("skip_nat_tests").is_some();
+pub(crate) type DefaultHi = nat::Eval<
     expr::If<
-        crate::consts::ConstBool<SKIP_TESTS>,
-        U0,
+        crate::consts::Bool<SKIP_TESTS>,
+        N0,
         expr::If<
-            crate::consts::ConstBool<MORE_TESTS>, //
-            uint::lit!(50),
-            uint::lit!(10),
+            crate::consts::Bool<MORE_TESTS>, //
+            nat::lit!(50),
+            nat::lit!(10),
         >,
     >,
 >;
-pub(crate) type DefaultLo = crate::small::U0;
+pub(crate) type DefaultLo = crate::small::N0;
 
 /// A type-level linked list of `Nat`s
 pub(crate) trait NatList: Sized {
@@ -59,9 +60,9 @@ pub(crate) trait Tests: Sized {
 // so that we don't need to monomorphize infinitely many functions.
 impl NatList for () {
     const EMPTY: bool = true;
-    type First = U0;
+    type First = N0;
     type Tail = Self;
-    type Len = U0;
+    type Len = N0;
 
     type ReduceTestsArgs<T: Tests<RangesLo = Self>> = T;
 }
@@ -69,7 +70,7 @@ impl<N: Nat, L: NatList> NatList for (N, L) {
     const EMPTY: bool = false;
     type First = N;
     type Tail = L;
-    type Len = uint::From<expr::_Inc<L::Len>>;
+    type Len = nat::Eval<expr::_Inc<L::Len>>;
 
     type ReduceTestsArgs<T: Tests<RangesLo = Self>> =
         <L as NatList>::ReduceTestsArgs<FirstArgTestsTraverser<T>>;
@@ -117,7 +118,7 @@ where
     }
     fn good_traverse<L: NatList<Len = Len>, N: Nat>() {
         let (test, next) = const {
-            let cmp = uint::cmp::<N, <T::RangesLo as NatList>::First>();
+            let cmp = nat::cmp::<N, <T::RangesLo as NatList>::First>();
             (
                 match cmp.is_ge() {
                     true => Some(T::run_tests_on::<(N, L)>),
@@ -213,10 +214,10 @@ macro_rules! test_op {
             }
             #[expect(non_snake_case)]
             fn doit<$first: crate::Nat $(, $param: crate::Nat)*>() {
-                let $first = crate::uint::to_u128::<$first>().unwrap();
-                $(let $param = crate::uint::to_u128::<$param>().unwrap();)*
+                let $first = crate::nat::to_u128::<$first>().unwrap();
+                $(let $param = crate::nat::to_u128::<$param>().unwrap();)*
                 assert_eq!(
-                    crate::uint::to_u128::<$got>(),
+                    crate::nat::to_u128::<$got>(),
                     Some($expect),
                     "params={:?}",
                     ($($param),*)
@@ -294,7 +295,7 @@ macro_rules! test_op {
         )
     };
     (@bound $n:ty) => { $n };
-    (@bound $n:expr) => { crate::uint::From<crate::consts::ConstU128<{$n}>> };
+    (@bound $n:expr) => { crate::nat::Eval<crate::consts::U128<{$n}>> };
     (@select lo $lo:ty, $_:ty $(,)?) => { $lo };
     (@select hi $_:ty, $hi:ty $(,)?) => { $hi };
 }

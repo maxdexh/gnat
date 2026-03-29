@@ -1,7 +1,7 @@
 //! Implementation detail
 
 pub(crate) type Umax = crate::condty::CondTy<
-    crate::consts::ConstBool<{ size_of::<usize>() > size_of::<u128>() }>,
+    crate::consts::Bool<{ size_of::<usize>() > size_of::<u128>() }>,
     usize,
     u128,
 >;

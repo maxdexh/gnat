@@ -9,12 +9,12 @@ use crate::{
 // SAFETY: By definition
 unsafe impl<T, const N: usize> Array for [T; N]
 where
-    crate::consts::ConstUsize<N>: crate::NatExpr,
+    crate::consts::Usize<N>: crate::NatExpr,
 {
     type Item = T;
-    type Length = crate::uint::From<crate::consts::ConstUsize<N>>;
+    type Length = crate::nat::Eval<crate::consts::Usize<N>>;
 }
-impl<T, const N: usize> ArraySealed for [T; N] where crate::consts::ConstUsize<N>: crate::NatExpr {}
+impl<T, const N: usize> ArraySealed for [T; N] where crate::consts::Usize<N>: crate::NatExpr {}
 
 // SAFETY: MaybeUninit<[T; N]> is equivalent to [MaybeUninit<T>; N]
 unsafe impl<A: Array> Array for core::mem::MaybeUninit<A> {
@@ -34,14 +34,14 @@ impl<A: Array> ArraySealed for ArrApi<A> {}
 // in accordance with array layout
 unsafe impl<T, A: Array<Item = T>, B: Array<Item = T>> Array for ArrConcat<A, B> {
     type Item = T;
-    type Length = crate::uint::From<crate::expr::Add<A::Length, B::Length>>;
+    type Length = crate::nat::Eval<crate::expr::Add<A::Length, B::Length>>;
 }
 impl<T, A: Array<Item = T>, B: Array<Item = T>> ArraySealed for ArrConcat<A, B> {}
 
 // SAFETY: repr(transparent), `[[T; M]; N]` is equivalent to `[T; M * N]`
 unsafe impl<A: Array<Item = B>, B: Array> Array for ArrFlatten<A> {
     type Item = B::Item;
-    type Length = crate::uint::From<crate::expr::Mul<A::Length, B::Length>>;
+    type Length = crate::nat::Eval<crate::expr::Mul<A::Length, B::Length>>;
 }
 impl<A: Array<Item = B>, B: Array> ArraySealed for ArrFlatten<A> {}
 
@@ -88,7 +88,7 @@ where
     /// # Examples
     /// ```
     /// use gnat::{array::*, small::*};
-    /// let arr = Arr::<_, U4>::from_fn(|i| i * i);
+    /// let arr = Arr::<_, N4>::from_fn(|i| i * i);
     /// assert_eq!(arr, [0, 1, 4, 9]);
     /// ```
     #[track_caller]
@@ -110,7 +110,7 @@ where
     /// Retyping [`Arr`] to [`CopyArr`]:
     /// ```
     /// use gnat::{array::*, small::*};
-    /// let arr = Arr::<_, U5>::from_fn(|i| i * i);
+    /// let arr = Arr::<_, N5>::from_fn(|i| i * i);
     /// let converted: CopyArr<_, _> = arr.retype();
     /// let converted_copy = converted;
     /// assert_eq!(converted, converted_copy);

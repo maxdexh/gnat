@@ -17,7 +17,7 @@ const MAX_SMALL: u64 = 512;
 
 fn write_nums(mut out: impl std::fmt::Write) -> std::fmt::Result {
     for i in 2..=MAX_SMALL {
-        writeln!(out, "bisect!(U{i}, {i}, U{h}, U{p});", h = i / 2, p = i % 2)?;
+        writeln!(out, "bisect!(N{i}, {i}, N{h}, N{p});", h = i / 2, p = i % 2)?;
     }
     Ok(())
 }
