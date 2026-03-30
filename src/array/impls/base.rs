@@ -8,7 +8,7 @@ use core::mem::MaybeUninit;
 use crate::{
     Nat,
     array::{helper::*, *},
-    nat, utils,
+    utils,
 };
 
 impl<T, N: Nat, A> ArrApi<A>
@@ -25,7 +25,7 @@ where
     ///
     /// # Examples
     /// ```
-    /// use gnat::{array::*, nat};
+    /// use gnat::array::*;
     ///
     /// let arr = CopyArr::<_, gnat::lit!(20_000)>::from_fn(|i| i);
     /// assert_eq!(arr.try_into_builtin::<19_999>(), Err(arr));
@@ -34,7 +34,7 @@ where
     /// assert_eq!(builtin, core::array::from_fn::<_, 20_000, _>(|i| i));
     /// ```
     pub const fn try_into_builtin<const M: usize>(self) -> Result<[T; M], Self> {
-        match nat::to_usize::<N>() {
+        match crate::to_usize::<N>() {
             Some(n) if n == M => Ok(
                 // SAFETY: `Array` invariant
                 unsafe { utils::union_transmute!(Self, [T; M], self) },
@@ -61,9 +61,9 @@ where
     /// Creating an oversized array of `()`
     /// ```
     /// #![recursion_limit = "1024"]
-    /// use gnat::{array::*, nat, expr, consts::{PtrBits, UsizeMax}};
-    /// type LargeSize = nat::Eval<expr::Shl<gnat::lit!(1), PtrBits>>;
-    /// assert!(nat::to_usize::<LargeSize>().is_none());
+    /// use gnat::{array::*, expr, consts::{PtrBits, UsizeMax}};
+    /// type LargeSize = gnat::Eval<expr::Shl<gnat::lit!(1), PtrBits>>;
+    /// assert!(gnat::to_usize::<LargeSize>().is_none());
     /// let arr = Arr::<_, LargeSize>::of(());
     /// let ArrConcat(most, [()]): ArrConcat<CopyArr<_, UsizeMax>, _> = arr.retype();
     /// assert_eq!(most.as_slice().len(), usize::MAX);
@@ -135,18 +135,18 @@ where
     /// Converting a [`Nat`] to a string in binary, at compile time, with arbitrary length.
     /// ```
     /// extern crate generic_upper_bound as gub;
-    /// use gnat::{NatExpr, Nat, nat, expr, array::{Arr, ArrApi}};
+    /// use gnat::{NatExpr, Nat, expr, array::{Arr, ArrApi}};
     /// use core::mem::MaybeUninit;
     ///
-    /// type BinaryLen<N> = nat::Eval<expr::BaseLen<gnat::lit!(2), N>>;
+    /// type BinaryLen<N> = gnat::Eval<expr::BaseLen<gnat::lit!(2), N>>;
     /// const fn to_binary_arr<N: Nat>() -> Arr<u8, BinaryLen<N>> {
     ///     let last_bit = [
-    ///         b'0' + !nat::is_zero::<expr::LastBit::<N>>() as u8
+    ///         b'0' + !gnat::is_zero::<expr::LastBit::<N>>() as u8
     ///     ];
-    ///     if nat::is_zero::<expr::PopBit<N>>() {
+    ///     if gnat::is_zero::<expr::PopBit<N>>() {
     ///         ArrApi::new(last_bit).try_retype().unwrap()
     ///     } else {
-    ///         to_binary_arr::<nat::Eval<expr::PopBit<N>>>()
+    ///         to_binary_arr::<gnat::Eval<expr::PopBit<N>>>()
     ///             .concat(last_bit)
     ///             .try_retype()
     ///             .unwrap()
@@ -164,7 +164,7 @@ where
     ///     }
     ///     impl<N: Nat> gub::AcceptUpperBound for Doit<N> {
     ///         type Output = &'static [MaybeUninit<u8>];
-    ///         const DESIRED_GENERIC: usize = nat::to_usize::<BinaryLen<N>>().unwrap();
+    ///         const DESIRED_GENERIC: usize = gnat::to_usize::<BinaryLen<N>>().unwrap();
     ///         type Eval<const ARRLEN: usize> = Doit<N, ARRLEN>;
     ///     }
     ///     let slice: &'static [MaybeUninit<u8>] = gub::eval_with_upper_bound::<Doit<N::Eval>>();

@@ -38,7 +38,7 @@ pub type _SubUnchecked<L, R, C = N0> = PushBit<
         _H<L>,
         _H<R>,
         // Normalize recursive argument
-        nat::Eval<
+        crate::Eval<
             If<
                 _P<L>, //
                 _And<_P<R>, C>,

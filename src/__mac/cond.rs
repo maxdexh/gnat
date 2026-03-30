@@ -1,17 +1,17 @@
 use core::marker::PhantomData;
 
-use crate::{NatExpr, condty::*, nat, utils};
+use crate::{NatExpr, condty::*, utils};
 
 pub use Result;
 
-// SAFETY INVARIANT: `COND = !nat::is_zero::<C>()`
+// SAFETY INVARIANT: `COND = !gnat::is_zero::<C>()`
 // Conversely, the existence of an instance of this type proves the above statement!
 pub struct CtxCond<C, const COND: bool> {
     _p: PhantomData<C>,
 }
 
 pub const fn hold<C: crate::NatExpr>() -> Result<CtxCond<C, true>, CtxCond<C, false>> {
-    if nat::is_zero::<C>() {
+    if crate::is_zero::<C>() {
         Err(CtxCond::<C, false> { _p: PhantomData })
     } else {
         Ok(CtxCond::<C, true> { _p: PhantomData })

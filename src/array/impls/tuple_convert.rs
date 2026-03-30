@@ -7,7 +7,7 @@ macro_rules! tuple_gen_impl {
             type Tuple<$P> = ($P, $($T),*);
             impl<A, T> From<crate::array::ArrApi<A>> for Tuple<T>
             where
-                A: Array<Item = T, Length = crate::nat::Eval<crate::consts::Usize<COUNT>>>,
+                A: Array<Item = T, Length = crate::Eval<crate::consts::Usize<COUNT>>>,
             {
                 fn from(value: crate::array::ArrApi<A>) -> Self {
                     crate::array::arr_api::retype::<_, [_; COUNT]>(value).into()
@@ -15,7 +15,7 @@ macro_rules! tuple_gen_impl {
             }
             impl<A, T> From<Tuple<T>> for ArrApi<A>
             where
-                A: Array<Item = T, Length = crate::nat::Eval<crate::consts::Usize<COUNT>>>,
+                A: Array<Item = T, Length = crate::Eval<crate::consts::Usize<COUNT>>>,
             {
                 fn from(value: Tuple<T>) -> Self {
                     crate::array::arr_api::retype::<[_; COUNT], _>(value.into())

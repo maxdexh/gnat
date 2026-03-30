@@ -33,10 +33,12 @@ pub mod array;
 pub mod condty;
 pub mod consts;
 pub mod expr;
-pub mod nat;
 pub mod small;
 
-/// A type-level non-negative integer.
+mod nat_api;
+pub use nat_api::*;
+
+/// Trait for type-level natural numbers.
 ///
 /// See the [crate level documentation](crate).
 ///
@@ -45,14 +47,14 @@ pub mod small;
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a `Nat`",
     label = "`{Self}` was expected to implement `Nat` directly",
-    note = "Consider using `nat::Eval<{Self}>` if `{Self}: NatExpr`"
+    note = "Consider using `crate::Eval<{Self}>` if `{Self}: NatExpr`"
 )]
 pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 
-/// A type that can be turned into a [`Nat`]
+/// Trait for deferred [`Nat`] expressions.
 ///
 /// This is not only a conversion trait, but forms an important part in how most operations are
-/// implemented. See the [`lazy`] module.
+/// implemented. See the [`expr`] module.
 #[diagnostic::on_unimplemented(
     message = "Cannot convert `{Self}` to a `Nat`",
     label = "To be used like a `Nat`, `{Self}` must implement `NatExpr`"
@@ -70,10 +72,9 @@ pub trait NatExpr {
 /// ```
 /// #![recursion_limit = "1024"] // `lit!` doesn't recurse, the type is just long
 ///
-/// use gnat::nat;
-/// assert_eq!(nat::to_u128::<gnat::lit!(1)>(), Some(1));
+/// assert_eq!(gnat::to_u128::<gnat::lit!(1)>(), Some(1));
 /// assert_eq!(
-///     nat::to_u128::<gnat::lit!(100000000000000000000000000000)>(),
+///     gnat::to_u128::<gnat::lit!(100000000000000000000000000000)>(),
 ///     Some(100000000000000000000000000000),
 /// )
 /// ```

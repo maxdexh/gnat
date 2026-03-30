@@ -4,7 +4,7 @@ use super::*;
 pub type _LogUncheckedNormRec<B, N> = _LogUnchecked<
     B,
     // Normalize recursive argument
-    nat::Eval<_DivUnchecked<N, B>>,
+    crate::Eval<_DivUnchecked<N, B>>,
 >;
 #[apply(lazy)]
 pub type _LogUnchecked<B, N> = If<

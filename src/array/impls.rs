@@ -12,7 +12,7 @@ where
     crate::consts::Usize<N>: crate::NatExpr,
 {
     type Item = T;
-    type Length = crate::nat::Eval<crate::consts::Usize<N>>;
+    type Length = crate::Eval<crate::consts::Usize<N>>;
 }
 impl<T, const N: usize> ArraySealed for [T; N] where crate::consts::Usize<N>: crate::NatExpr {}
 
@@ -34,14 +34,14 @@ impl<A: Array> ArraySealed for ArrApi<A> {}
 // in accordance with array layout
 unsafe impl<T, A: Array<Item = T>, B: Array<Item = T>> Array for ArrConcat<A, B> {
     type Item = T;
-    type Length = crate::nat::Eval<crate::expr::Add<A::Length, B::Length>>;
+    type Length = crate::Eval<crate::expr::Add<A::Length, B::Length>>;
 }
 impl<T, A: Array<Item = T>, B: Array<Item = T>> ArraySealed for ArrConcat<A, B> {}
 
 // SAFETY: repr(transparent), `[[T; M]; N]` is equivalent to `[T; M * N]`
 unsafe impl<A: Array<Item = B>, B: Array> Array for ArrFlatten<A> {
     type Item = B::Item;
-    type Length = crate::nat::Eval<crate::expr::Mul<A::Length, B::Length>>;
+    type Length = crate::Eval<crate::expr::Mul<A::Length, B::Length>>;
 }
 impl<A: Array<Item = B>, B: Array> ArraySealed for ArrFlatten<A> {}
 

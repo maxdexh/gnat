@@ -16,7 +16,7 @@ pub mod direct;
 
 use core::mem::ManuallyDrop;
 
-use crate::{NatExpr, nat};
+use crate::NatExpr;
 
 /// Direct conditional type based on a [`Nat`](crate::Nat).
 ///
@@ -70,7 +70,7 @@ impl<C: NatExpr, T, E> CondResult<C, T, E> {
     }
 
     /// Whether instances of this type are `Ok`
-    pub const IS_OK: bool = !nat::is_zero::<C>();
+    pub const IS_OK: bool = !crate::is_zero::<C>();
 
     /// Whether instances of this type are `Err`
     pub const IS_ERR: bool = !Self::IS_OK;
@@ -216,7 +216,7 @@ impl<C: NatExpr, T> CondOption<C, T> {
     }
 
     /// Whether instances of this type are `Some`
-    pub const IS_SOME: bool = !nat::is_zero::<C>();
+    pub const IS_SOME: bool = !crate::is_zero::<C>();
 
     /// Whether instances of this type are `None`
     pub const IS_NONE: bool = !Self::IS_SOME;

@@ -4,7 +4,7 @@ fn partial_eq_impl<A: Array, U>(lhs: &ArrApi<A>, rhs: &[U]) -> bool
 where
     A::Item: PartialEq<U>,
 {
-    (const { crate::nat::to_usize::<A::Length>().is_some() } && lhs.as_slice() == rhs)
+    (const { crate::to_usize::<A::Length>().is_some() } && lhs.as_slice() == rhs)
 }
 
 impl<A, U> PartialEq<[U]> for ArrApi<A>
@@ -42,9 +42,9 @@ where
     A::Item: PartialEq<B::Item>,
 {
     fn eq(&self, other: &ArrApi<B>) -> bool {
-        if const { crate::nat::cmp::<A::Length, B::Length>().is_ne() } {
+        if const { crate::cmp::<A::Length, B::Length>().is_ne() } {
             false
-        } else if const { crate::nat::to_usize::<A::Length>().is_some() } {
+        } else if const { crate::to_usize::<A::Length>().is_some() } {
             self.as_slice() == other.as_slice()
         } else {
             let mut lhs = container::ArrRefConsumer::new(self);

@@ -1,8 +1,8 @@
 #![cfg(test)]
 
-use crate::{Nat, expr, nat, small::*};
+use crate::{Nat, expr, small::*};
 
-pub(crate) type SatDec<N> = nat::Eval<expr::If<N, expr::_DecUnchecked<N>, N0>>;
+pub(crate) type SatDec<N> = crate::Eval<expr::If<N, expr::_DecUnchecked<N>, N0>>;
 
 /// The test runner for all operations uses [`SatDec`] to traverse a range of inputs.
 /// This test is there to ensure that it behaves correctly.
@@ -12,7 +12,7 @@ fn test_satdec() {
     where
         crate::consts::U128<N>: crate::NatExpr<Eval = V>,
     {
-        assert_eq!(nat::to_u128::<SatDec<V>>(), Some(N.saturating_sub(1)),)
+        assert_eq!(crate::to_u128::<SatDec<V>>(), Some(N.saturating_sub(1)),)
     }
     macro_rules! tests {
         ($($val:literal)*) => {$(
@@ -24,7 +24,7 @@ fn test_satdec() {
 
 const MORE_TESTS: bool = option_env!("more_nat_tests").is_some();
 const SKIP_TESTS: bool = option_env!("skip_nat_tests").is_some();
-pub(crate) type DefaultHi = nat::Eval<
+pub(crate) type DefaultHi = crate::Eval<
     expr::If<
         crate::consts::Bool<SKIP_TESTS>,
         N0,
@@ -70,7 +70,7 @@ impl<N: Nat, L: NatList> NatList for (N, L) {
     const EMPTY: bool = false;
     type First = N;
     type Tail = L;
-    type Len = nat::Eval<expr::_Inc<L::Len>>;
+    type Len = crate::Eval<expr::_Inc<L::Len>>;
 
     type ReduceTestsArgs<T: Tests<RangesLo = Self>> =
         <L as NatList>::ReduceTestsArgs<FirstArgTestsTraverser<T>>;
@@ -118,7 +118,7 @@ where
     }
     fn good_traverse<L: NatList<Len = Len>, N: Nat>() {
         let (test, next) = const {
-            let cmp = nat::cmp::<N, <T::RangesLo as NatList>::First>();
+            let cmp = crate::cmp::<N, <T::RangesLo as NatList>::First>();
             (
                 match cmp.is_ge() {
                     true => Some(T::run_tests_on::<(N, L)>),
@@ -214,10 +214,10 @@ macro_rules! test_op {
             }
             #[expect(non_snake_case)]
             fn doit<$first: crate::Nat $(, $param: crate::Nat)*>() {
-                let $first = crate::nat::to_u128::<$first>().unwrap();
-                $(let $param = crate::nat::to_u128::<$param>().unwrap();)*
+                let $first = crate::to_u128::<$first>().unwrap();
+                $(let $param = crate::to_u128::<$param>().unwrap();)*
                 assert_eq!(
-                    crate::nat::to_u128::<$got>(),
+                    crate::to_u128::<$got>(),
                     Some($expect),
                     "params={:?}",
                     ($($param),*)
@@ -295,7 +295,7 @@ macro_rules! test_op {
         )
     };
     (@bound $n:ty) => { $n };
-    (@bound $n:expr) => { crate::nat::Eval<crate::consts::U128<{$n}>> };
+    (@bound $n:expr) => { crate::Eval<crate::consts::U128<{$n}>> };
     (@select lo $lo:ty, $_:ty $(,)?) => { $lo };
     (@select hi $_:ty, $hi:ty $(,)?) => { $hi };
 }

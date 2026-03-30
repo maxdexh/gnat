@@ -2,7 +2,7 @@
 
 use core::cmp::Ordering;
 
-use crate::{Nat, NatExpr, expr, maxint::Umax, nat};
+use crate::{Nat, NatExpr, expr, maxint::Umax};
 
 /// Alias for [`NatExpr::Eval`].
 pub type Eval<N> = <N as NatExpr>::Eval;
@@ -12,7 +12,7 @@ const fn to_umax_overflowing<N: Nat>() -> (Umax, bool) {
         if is_zero::<N>() {
             (0, false)
         } else {
-            let (h, o1) = to_umax_overflowing::<nat::Eval<expr::PopBit<N>>>();
+            let (h, o1) = to_umax_overflowing::<Eval<expr::PopBit<N>>>();
             let (t, o2) = h.overflowing_mul(2);
             let (n, o3) = t.overflowing_add(!is_zero::<expr::LastBit<N>>() as _);
             (n, o1 || o2 || o3)
@@ -26,12 +26,12 @@ const fn to_umax<N: Nat>() -> Option<Umax> {
     }
 }
 
-/// Returns whether a [`Nat`] is zero.
+/// Checks whether a [`Nat`] is zero.
 pub const fn is_zero<N: NatExpr>() -> bool {
     crate::internals::InternalOp!(N::Eval, IS_ZERO)
 }
 
-/// Returns the decimal representation of a [`Nat`] for arbitrarily large `N`.
+/// Returns the decimal representation of a [`Nat`].
 pub const fn to_str<N: NatExpr>() -> &'static str {
     const fn to_byte_str_naive<N: Nat>() -> &'static [u8] {
         struct ConcatBytes<N>(N);
@@ -40,7 +40,7 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
             const VALUE: Self::Type = &[
                 // Recursively append the last digit
                 doit::<
-                    nat::Eval<
+                    Eval<
                         // Pop a digit
                         expr::Div<N, crate::lit!(10)>,
                     >,

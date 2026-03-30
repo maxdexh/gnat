@@ -43,7 +43,7 @@ pub type _CarryAdd<L, R, C = N0> = PushBit<
         _H<R>, // swap args to converge faster
         _H<L>,
         // Normalize recursive argument
-        nat::Eval<
+        crate::Eval<
             // Since X = LP + RP + C <= 3, we have X / 2 being either 0 or 1,
             // and therefore X / 2 = 1 iff LP + RP + C >= 2, else X / 2 = 0.
             If<

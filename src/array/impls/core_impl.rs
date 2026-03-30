@@ -1,4 +1,4 @@
-use crate::{Nat, array::*, nat};
+use crate::{Nat, array::*};
 
 impl<T, N: Nat, A> ArrApi<A>
 where
@@ -102,7 +102,7 @@ const _: () = {
         T: Debug,
     {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            if nat::to_usize::<A::Length>().is_some() {
+            if crate::to_usize::<A::Length>().is_some() {
                 write!(f, "{:?}", self.as_slice())
             } else {
                 write!(f, "[...]")
@@ -119,7 +119,7 @@ const _: () = {
         A: Array<Item: Hash>,
     {
         fn hash<H: Hasher>(&self, state: &mut H) {
-            if const { nat::to_usize::<A::Length>().is_some() } {
+            if const { crate::to_usize::<A::Length>().is_some() } {
                 self.as_slice().hash(state)
             } else {
                 fn hash_zst<A, H>(a: &A, h: &mut H)

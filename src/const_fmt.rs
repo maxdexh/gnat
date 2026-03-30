@@ -189,7 +189,7 @@ enter_impl![
     [N: Nat],
     PhantomData<N>,
     ConstFmtVariants<'static>,
-    |_| ConstFmtVariants::Str(crate::nat::to_str::<N>())
+    |_| ConstFmtVariants::Str(crate::to_str::<N>())
 ];
 enter_impl![
     ['a],

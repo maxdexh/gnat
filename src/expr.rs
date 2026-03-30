@@ -4,12 +4,12 @@
 //! Operations implemented as a struct implementing [`NatExpr`] are called lazy. They are lazy
 //! in the sense that they will only be evaluated once the compiler "evaluates" the associated
 //! type projection [`<Op<...> as NatExpr>::Eval`](NatExpr::Eval), generally through use of
-//! [`nat::Eval`].
+//! [`crate::Eval`].
 //!
 //! All operations in this module are lazy. In order to get a [`Nat`] from them, e.g. for use
-//! with [arrays](crate::array), one has to use [`nat::Eval`] to evaluate them.
+//! with [arrays](crate::array), one has to use [`crate::Eval`] to evaluate them.
 //!
-//! Lazy operations are in contrast to type aliases, e.g. `type Inc<N> = nat::Eval<Add<N, _1>>`,
+//! Lazy operations are in contrast to type aliases, e.g. `type Inc<N> = gnat::Eval<Add<N, _1>>`,
 //! which directly expand at the usage site, though they can still be lazy if they expand to
 //! a lazy operation and don't convert anything to a [`Nat`].
 //!
@@ -28,7 +28,7 @@
 //!   to [`F::Eval`](NatExpr). Only the necessary [`NatExpr::Eval`] projection is accessed.
 //!     - Equivalent like `if C != 0 { T.eval() } else { F.eval() }`
 //!
-//! These primitives, together with [`NatExpr`] implementations based on them (and [`nat::Eval`]),
+//! These primitives, together with [`NatExpr`] implementations based on them (and [`crate::Eval`]),
 //! are sufficient for a [Turing-complete](https://en.wikipedia.org/wiki/Turing_completeness)
 //! system, and all other operations in this module are just implemented on top of them. The way to do this is
 //! described in the following sections.
@@ -42,12 +42,12 @@
 //! computed when it is projected to [`NatExpr::Eval`]. For example, consider the following
 //! implementation of [`BitAnd`]:
 //! ```
-//! use gnat::{NatExpr, small::*, expr::*, nat};
+//! use gnat::{NatExpr, small::*, expr::*};
 //! // MyBitAnd is a struct implementing NatExpr, i.e. a lazy operation
 //! pub struct MyBitAnd<L, R>(L, R);
 //! impl<L: NatExpr, R: NatExpr> NatExpr for MyBitAnd<L, R> {
 //!     // SUBOPTIMAL IMPLEMENTATION, SEE BELOW
-//!     type Eval = nat::Eval<If<
+//!     type Eval = gnat::Eval<If<
 //!         L,
 //!         // take the bitand of the previous bits and append the and of the last bit
 //!         PushBit<
@@ -59,8 +59,8 @@
 //! }
 //! fn check_input<L: NatExpr, R: NatExpr>() {
 //!     assert_eq!(
-//!         nat::to_u128::<MyBitAnd<L, R>>().unwrap(),
-//!         nat::to_u128::<L>().unwrap() & nat::to_u128::<R>().unwrap(),
+//!         gnat::to_u128::<MyBitAnd<L, R>>().unwrap(),
+//!         gnat::to_u128::<L>().unwrap() & gnat::to_u128::<R>().unwrap(),
 //!     )
 //! }
 //! check_input::<N3, N5>();
@@ -74,9 +74,9 @@
 //! #### Evaluating recursive arguments
 //! Because [`PopBit`] is itself lazy, the above definition of `MyBitAnd` will
 //! result in the arguments to `MyBitAnd` accumulating `PopBit<PopBit<...>>`
-//! for every recusive step. This can be fixed by applying [`nat::Eval`] to
+//! for every recusive step. This can be fixed by applying [`crate::Eval`] to
 //! the recursive arguments; e.g. in the example above, it is preferrable to
-//! use `MyBitAnd<nat::Eval<PopBit<L>>, nat::Eval<PopBit<R>>>`.
+//! use `MyBitAnd<gnat::Eval<PopBit<L>>, gnat::Eval<PopBit<R>>>`.
 //!
 //! This is almost always beneficial for compile times.
 //!
@@ -90,7 +90,7 @@
 //! as someone could rely on them behaving a certain way in generic contexts.
 //! An example of this would be `LastBit<PushBit<N, B>> = B` where the arguments are generic.
 //!
-//! Furthermore, when using things like `nat::Eval<Min<UsizeMax, N>>` where `N` is generic,
+//! Furthermore, when using things like `crate::Eval<Min<UsizeMax, N>>` where `N` is generic,
 //! the compiler might try to normalize the entire recursive `Min` operation, which may cause
 //! spurious "overflow while ..." errors.
 //!
@@ -105,20 +105,20 @@
 //! The way to use this when implementing a public operation `Op<A, B>` is as follows:
 //! - The actual implementation is moved to a seperate lazy operation `OpImpl<A, B>`. Recursive
 //!   evaluations use `OpImpl` rather than `Op`.
-//! - `Op` should be a lazy operation that evaluates to `nat::Eval<Opaque<A, Opaque<B, OpImpl<A, B>>>>`
+//! - `Op` should be a lazy operation that evaluates to `crate::Eval<Opaque<A, Opaque<B, OpImpl<A, B>>>>`
 //!
 //! # Complete example implementation of [`BitAnd`]
 //! ```
-//! use gnat::{NatExpr, small::*, expr::*, nat};
+//! use gnat::{NatExpr, small::*, expr::*};
 //! pub struct _MyBitAnd<L, R>(L, R); // hide this in a private module
 //! impl<L: NatExpr, R: NatExpr> NatExpr for _MyBitAnd<L, R> {
-//!     type Eval = nat::Eval<If<
+//!     type Eval = gnat::Eval<If<
 //!         L,
 //!         // take the bitand of the previous bits and append the and of the last bit
 //!         PushBit<
 //!             _MyBitAnd<
-//!                 nat::Eval<PopBit<L>>,
-//!                 nat::Eval<PopBit<R>>,
+//!                 gnat::Eval<PopBit<L>>,
+//!                 gnat::Eval<PopBit<R>>,
 //!             >,
 //!             If<LastBit<L>, LastBit<R>, N0>, // boolean AND
 //!         >,
@@ -128,8 +128,8 @@
 //! pub type MyBitAnd<L, R> = Opaque<L, Opaque<R, _MyBitAnd<L, R>>>;
 //! fn check_input<L: NatExpr, R: NatExpr>() {
 //!     assert_eq!( // works fully generically!
-//!         nat::to_u128::<MyBitAnd<L, R>>().unwrap(),
-//!         nat::to_u128::<L>().unwrap() & nat::to_u128::<R>().unwrap(),
+//!         gnat::to_u128::<MyBitAnd<L, R>>().unwrap(),
+//!         gnat::to_u128::<L>().unwrap() & gnat::to_u128::<R>().unwrap(),
 //!     )
 //! }
 //! check_input::<N3, N5>();
@@ -139,7 +139,7 @@
 
 #[expect(unused_imports)] // for docs
 use crate::{Nat, NatExpr};
-use crate::{internals::InternalOp, nat, small::*, utils::apply};
+use crate::{internals::InternalOp, small::*, utils::apply};
 
 macro_rules! lazy_impl {
     (
@@ -148,7 +148,7 @@ macro_rules! lazy_impl {
     ) => {
         impl<$($P: crate::NatExpr),*> crate::NatExpr for $Name<$($P),*> {
             #[doc(hidden)]
-            type Eval = crate::nat::Eval<$Val>;
+            type Eval = crate::Eval<$Val>;
         }
     };
     (
@@ -159,7 +159,7 @@ macro_rules! lazy_impl {
         $(#[$attr])*
         impl<$($P: $Bound),*> $OutBound for $Name<$($P),*> {
             #[doc(hidden)]
-            type Eval = crate::nat::Eval<$Val>;
+            type Eval = crate::Eval<$Val>;
         }
     };
 }
@@ -176,7 +176,7 @@ pub(crate) use lazy_impl;
 /// #[apply(lazy)]
 /// pub struct A<P1, P2, ...>(P1, P2, ...);
 /// impl<P1: NatExpr, P2: NatExpr, ...> NatExpr for A<P1, P2, ...> {
-///     type Eval = nat::Eval<$Val>;
+///     type Eval = gnat::Eval<$Val>;
 /// }
 /// ```
 macro_rules! lazy {
@@ -233,7 +233,7 @@ macro_rules! opaque {
 
         $crate::expr::lazy! {
             $(#[$attr])*
-            pub type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = $crate::nat::Eval<$crate::expr::VarOpaque!($LazyBase<$($P),*>)>;
+            pub type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = $crate::Eval<$crate::expr::VarOpaque!($LazyBase<$($P),*>)>;
         }
     };
 }
@@ -258,7 +258,7 @@ macro_rules! op_examples {
         $(, ($farg:literal $(, $arg:literal)* $(,)?) == $res:literal )* $(,)?
     ) => {
         core::concat!(
-            "```\nuse gnat::{expr, small::*};\n# macro_rules! assert_nat_eq { ($nat:ty, $val:expr) => { assert_eq!(gnat::nat::to_u128::<$nat>(), Some($val)) } }\n",
+            "```\nuse gnat::{expr, small::*};\n# macro_rules! assert_nat_eq { ($nat:ty, $val:expr) => { assert_eq!(gnat::to_u128::<$nat>(), Some($val)) } }\n",
             $(
                 core::concat!(
                     "assert_nat_eq!(expr::",

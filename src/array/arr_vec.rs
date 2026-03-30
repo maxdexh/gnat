@@ -7,7 +7,7 @@ use const_util::result::expect_ok;
 use crate::{
     Nat,
     array::{helper::*, *},
-    const_fmt, nat, utils,
+    const_fmt, utils,
 };
 
 /// Wraps the drop impl so it isn't exposed as a trait bound
@@ -190,7 +190,7 @@ where
     ///
     /// # Examples
     /// ```
-    /// use gnat::{array::*, nat};
+    /// use gnat::array::*;
     ///
     /// type A = Arr<i32, gnat::lit!(10)>;
     /// assert_eq!(ArrVecApi::<A>::new(), []);
@@ -516,7 +516,7 @@ where
     where
         Dst: Array<Item = T>,
     {
-        match nat::to_usize::<Dst::Length>() {
+        match crate::to_usize::<Dst::Length>() {
             Some(cap) if cap < self.len() => Err(self),
             _ => {
                 let (arr, len) = self.into_uninit_parts();

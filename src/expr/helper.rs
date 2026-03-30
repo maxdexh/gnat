@@ -2,14 +2,14 @@ use super::*;
 
 pub type _And<L, R> = If<L, R, N0>;
 pub type _Or<L, R> = If<L, N1, R>;
-pub type _Xor<L, R> = nat::Eval<If<L, IsZero<R>, R>>;
-pub type _Xnor<L, R> = nat::Eval<If<L, R, IsZero<R>>>;
-pub type _Xor3<A, B, C> = nat::Eval<If<A, _Xnor<B, C>, _Xor<B, C>>>;
+pub type _Xor<L, R> = crate::Eval<If<L, IsZero<R>, R>>;
+pub type _Xnor<L, R> = crate::Eval<If<L, R, IsZero<R>>>;
+pub type _Xor3<A, B, C> = crate::Eval<If<A, _Xnor<B, C>, _Xor<B, C>>>;
 
 /// Eager version of `PopBit`.
-pub type _H<N> = nat::Eval<PopBit<N>>;
+pub type _H<N> = crate::Eval<PopBit<N>>;
 /// Eager version of `LastBit`.
-pub type _P<N> = nat::Eval<LastBit<N>>;
+pub type _P<N> = crate::Eval<LastBit<N>>;
 
 #[apply(lazy)]
 // H := H(N), P := P(N), N > 0.
