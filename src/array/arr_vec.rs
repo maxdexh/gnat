@@ -516,12 +516,13 @@ where
     where
         Dst: Array<Item = T>,
     {
-        if nat::cmp_usize::<Dst::Length>(self.len()).is_ge() {
-            let (arr, len) = self.into_uninit_parts();
-            // SAFETY: new cap >= len, so we must still have `len` valid elements.
-            Ok(unsafe { ArrVecApi::from_uninit_parts(arr.retype_uninit(), len) })
-        } else {
-            Err(self)
+        match nat::to_usize::<Dst::Length>() {
+            Some(cap) if cap < self.len() => Err(self),
+            _ => {
+                let (arr, len) = self.into_uninit_parts();
+                // SAFETY: new cap >= len, so we must still have `len` valid elements.
+                Ok(unsafe { ArrVecApi::from_uninit_parts(arr.retype_uninit(), len) })
+            }
         }
     }
 }

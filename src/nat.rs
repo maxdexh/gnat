@@ -151,27 +151,3 @@ pub const fn cmp<L: NatExpr, R: NatExpr>() -> Ordering {
     }
     doit::<L::Eval, R::Eval>()
 }
-
-const fn cmp_umax<Lhs: Nat>(rhs: Umax) -> Ordering {
-    if let Some(lhs) = to_umax::<Lhs>() {
-        if lhs < rhs {
-            Ordering::Less
-        } else if lhs == rhs {
-            Ordering::Equal
-        } else {
-            Ordering::Greater
-        }
-    } else {
-        Ordering::Greater
-    }
-}
-
-/// Compares a [`Nat`] (lhs) to a [`u128`] (rhs).
-pub const fn cmp_u128<Lhs: NatExpr>(rhs: u128) -> Ordering {
-    cmp_umax::<Lhs::Eval>(rhs as _)
-}
-
-/// Compares a [`Nat`] (lhs) to a [`usize`] (rhs).
-pub const fn cmp_usize<Lhs: NatExpr>(rhs: usize) -> Ordering {
-    cmp_umax::<Lhs::Eval>(rhs as _)
-}

@@ -34,13 +34,12 @@ where
     /// assert_eq!(builtin, core::array::from_fn::<_, 20_000, _>(|i| i));
     /// ```
     pub const fn try_into_builtin<const M: usize>(self) -> Result<[T; M], Self> {
-        if const { nat::cmp_usize::<N>(M).is_eq() } {
-            Ok(
+        match nat::to_usize::<N>() {
+            Some(n) if n == M => Ok(
                 // SAFETY: `Array` invariant
                 unsafe { utils::union_transmute!(Self, [T; M], self) },
-            )
-        } else {
-            Err(self)
+            ),
+            _ => Err(self),
         }
     }
 }
