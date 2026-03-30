@@ -13,7 +13,7 @@ use super::*;
 #[apply(lazy)]
 pub type PopBit<N> = InternalOp!(crate::Eval<N>, PopBit);
 
-/// Gets the last bit of a [`Nat`], thereby getting its [parity](https://en.wikipedia.org/wiki/Parity_(mathematics)).
+/// Gets the last bit of a [`Nat`], thereby getting its parity.
 ///
 /// This is a primitive operation.
 ///
@@ -39,7 +39,7 @@ pub type LastBit<N> = InternalOp!(crate::Eval<N>, LastBit);
 #[apply(lazy)]
 pub type PushBit<N, P> = InternalOp!(crate::Eval<P>, PushSelfAsBit<crate::Eval<N>>);
 
-/// Conditionally evaluates to one of its arguments.
+/// Ternary operation
 ///
 /// This is a primitive operation.
 ///

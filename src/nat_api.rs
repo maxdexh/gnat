@@ -92,14 +92,14 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
     shortcut_umax::<N::Eval>()
 }
 
-/// Converts [`N::Eval`](NatExpr) to a `usize` with overflow and reutrns whether any wrapping
+/// Converts a [`Nat`] to a `usize` with overflow and reutrns whether any wrapping
 /// occurred.
 pub const fn to_usize_overflowing<N: NatExpr>() -> (usize, bool) {
     let (n, o1) = to_umax_overflowing::<N::Eval>();
     (n as _, o1 || n > usize::MAX as Umax)
 }
 
-/// Converts [`N::Eval`](NatExpr) to a `usize` or returns `None` if it doesn't fit.
+/// Converts a [`Nat`] to a `usize` or returns `None` if it doesn't fit.
 pub const fn to_usize<N: NatExpr>() -> Option<usize> {
     match to_usize_overflowing::<N>() {
         (n, false) => Some(n),
@@ -107,14 +107,14 @@ pub const fn to_usize<N: NatExpr>() -> Option<usize> {
     }
 }
 
-/// Converts [`N::Eval`](NatExpr) to a `u128` with overflow and reutrns whether any wrapping
+/// Converts a [`Nat`] to a `u128` with overflow and reutrns whether any wrapping
 /// occurred.
 pub const fn to_u128_overflowing<N: NatExpr>() -> (u128, bool) {
     let (n, o1) = to_umax_overflowing::<N::Eval>();
     (n as _, o1 || n > u128::MAX as Umax)
 }
 
-/// Converts [`N::Eval`](NatExpr) to a `u128` or returns `None` if it doesn't fit.
+/// Converts a [`Nat`] to a `u128` or returns `None` if it doesn't fit.
 pub const fn to_u128<N: NatExpr>() -> Option<u128> {
     match to_u128_overflowing::<N>() {
         (n, false) => Some(n),
@@ -122,7 +122,7 @@ pub const fn to_u128<N: NatExpr>() -> Option<u128> {
     }
 }
 
-/// Compares [`L::Eval`](NatExpr) and [`R::Eval`](NatExpr).
+/// Compares two [`Nat`]s.
 ///
 /// If this function returns [`Equal`](core::cmp::Ordering::Equal), it is guaranteed that
 /// [`L::Eval`](NatExpr) and [`R::Eval`](NatExpr) are exactly the same type.
