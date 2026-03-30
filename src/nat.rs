@@ -2,7 +2,7 @@
 
 use core::cmp::Ordering;
 
-use crate::{Nat, NatExpr, lazy, maxint::Umax, nat};
+use crate::{Nat, NatExpr, expr, maxint::Umax, nat};
 
 /// Alias for [`NatExpr::Eval`].
 pub type Eval<N> = <N as NatExpr>::Eval;
@@ -12,9 +12,9 @@ const fn to_umax_overflowing<N: Nat>() -> (Umax, bool) {
         if is_zero::<N>() {
             (0, false)
         } else {
-            let (h, o1) = to_umax_overflowing::<nat::Eval<lazy::PopBit<N>>>();
+            let (h, o1) = to_umax_overflowing::<nat::Eval<expr::PopBit<N>>>();
             let (t, o2) = h.overflowing_mul(2);
-            let (n, o3) = t.overflowing_add(!is_zero::<lazy::LastBit<N>>() as _);
+            let (n, o3) = t.overflowing_add(!is_zero::<expr::LastBit<N>>() as _);
             (n, o1 || o2 || o3)
         }
     }
@@ -42,10 +42,10 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
                 doit::<
                     nat::Eval<
                         // Pop a digit
-                        lazy::Div<N, crate::lit!(10)>,
+                        expr::Div<N, crate::lit!(10)>,
                     >,
                 >(),
-                &[b'0' + to_usize::<lazy::Rem<N, crate::lit!(10)>>().unwrap() as u8],
+                &[b'0' + to_usize::<expr::Rem<N, crate::lit!(10)>>().unwrap() as u8],
             ];
         }
         const fn doit<N: Nat>() -> &'static [u8] {
@@ -136,10 +136,10 @@ pub const fn cmp<L: NatExpr, R: NatExpr>() -> Ordering {
                     Ordering::Less
                 }
             } else {
-                match doit::<Eval<lazy::PopBit<L>>, Eval<lazy::PopBit<R>>>() {
+                match doit::<Eval<expr::PopBit<L>>, Eval<expr::PopBit<R>>>() {
                     it @ (Ordering::Less | Ordering::Greater) => it,
                     Ordering::Equal => {
-                        match (is_zero::<lazy::LastBit<L>>(), is_zero::<lazy::LastBit<R>>()) {
+                        match (is_zero::<expr::LastBit<L>>(), is_zero::<expr::LastBit<R>>()) {
                             (false, false) | (true, true) => Ordering::Equal,
                             (false, true) => Ordering::Greater,
                             (true, false) => Ordering::Less,

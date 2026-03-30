@@ -32,7 +32,7 @@ mod utils;
 pub mod array;
 pub mod condty;
 pub mod consts;
-pub mod lazy;
+pub mod expr;
 pub mod nat;
 pub mod small;
 
