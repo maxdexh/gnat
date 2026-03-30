@@ -23,40 +23,41 @@
 //! - [`PushBit<N, B>`] pushes [`B::Eval`](NatExpr) as a bit to the end of [`N::Eval`](NatExpr)
 //!     - Evaluates like `2 * N.eval() + (B.eval() != 0) as _`
 //! - [`If<C, T, F>`] evaluates to [`T::Eval`](NatExpr) if `C` is nonzero, otherwise
-//!   to [`F::Eval`](NatExpr). Only the necessary [`NatExpr::Eval`] projection is accessed.
+//!   to [`F::Eval`](NatExpr). Only the necessary [`NatExpr::Eval`] projection is performed.
 //!     - Evaluates like `if C != 0 { T.eval() } else { F.eval() }`
 //!
 //! These primitives, together with [`NatExpr`] implementations based on them (and [`crate::Eval`]),
 //! are sufficient for a [Turing-complete](https://en.wikipedia.org/wiki/Turing_completeness)
-//! system, and all other operations in this module are just implemented on top of them. The way to do this is
-//! described in the following sections.
+//! system, and all other operations in this module are just implemented on top of them.
+//!
+//! Any computable function on the natural numbers can be implemented. See the following sections.
 //!
 //! # Recursion
 //! The way to implement an operation where the output requires looking at the entire number is to
 //! do it recursively. However, regular type aliases do not support recursion, see error E0391
 //! "cycle detected when expanding type alias".
 //!
-//! Instead, one has to go through [`NatExpr`] to make the operation "lazy", as in its value is only
-//! computed when it is projected to [`NatExpr::Eval`]. For example, consider the following
-//! implementation of [`BitAnd`]:
+//! Instead, one has to go through [`NatExpr`] to make the operation lazy and use [`If`] to exit the
+//! recursion. For example, consider the following implementation of [`BitAnd`]:
 //! ```
 //! use gnat::{NatExpr, small::*, expr::*};
-//! // MyBitAnd is a struct implementing NatExpr, i.e. a lazy operation
 //! pub struct MyBitAnd<L, R>(L, R);
 //! impl<L: NatExpr, R: NatExpr> NatExpr for MyBitAnd<L, R> {
-//!     // SUBOPTIMAL IMPLEMENTATION, SEE BELOW
 //!     type Eval = gnat::Eval<If<
 //!         L,
 //!         // take the bitand of the previous bits and append the and of the last bit
 //!         PushBit<
-//!             MyBitAnd<PopBit<L>, PopBit<R>>,
+//!             MyBitAnd<
+//!                 gnat::Eval<PopBit<L>>,
+//!                 gnat::Eval<PopBit<R>>,
+//!             >,
 //!             If<LastBit<L>, LastBit<R>, N0>, // boolean AND
 //!         >,
-//!         N0, // 0 & R = 0
+//!         N0, // 0 & R = 0, exit from the recursion
 //!     >>;
 //! }
 //! fn check_input<L: NatExpr, R: NatExpr>() {
-//!     assert_eq!(
+//!     assert_eq!( // works fully generically!
 //!         gnat::to_u128::<MyBitAnd<L, R>>().unwrap(),
 //!         gnat::to_u128::<L>().unwrap() & gnat::to_u128::<R>().unwrap(),
 //!     )
@@ -65,9 +66,15 @@
 //! check_input::<N59, N122>();
 //! check_input::<gnat::lit!(0b10101000110111111), gnat::lit!(0b11110111011111)>()
 //! ```
-//! Because `MyBitAnd` is [`NatExpr`] here and [`If`] works by only evaluating
-//! [`NatExpr::Eval`] for the branch that is needed for the output, this will
-//! properly exit when `L` becomes 0 and will not get stuck in an infinite loop.
+//! Because `MyBitAnd` and [`PushBit`] are lazy and [`If`] only accesses
+//! [`NatExpr::Eval`] on the required branch, this will exit when `L` becomes
+//! 0, without getting stuck in an infinite loop.
+//!
+//! Note here that we apply [`crate::Eval`] to [`PopBit`]. This is not strictly
+//! necessary, but without it, the input to `MyBitAnd` becomes more deeply nested
+//! on each recursive evaluation (`PopBit<PopBit<...>>`), which causes `MyBitAnd`
+//! to take longer to compute (longer compile times). Evaluating in each step causes
+//! the level of nesting to decrease, since the number becomes smaller.
 //!
 //! #### Evaluating recursive arguments
 //! Because [`PopBit`] is itself lazy, the above definition of `MyBitAnd` will
