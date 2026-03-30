@@ -1,17 +1,15 @@
 //! Module with operations for [`Nat`]s.
 //!
 //! # Laziness
-//! Operations implemented as a struct implementing [`NatExpr`] are called lazy. They are lazy
-//! in the sense that they will only be evaluated once the compiler "evaluates" the associated
-//! type projection [`<Op<...> as NatExpr>::Eval`](NatExpr::Eval), generally through use of
-//! [`crate::Eval`].
+//! Operations implemented as a struct implementing [`NatExpr`] are lazy in the sense that
+//! they will only be evaluated to a [`Nat`] instance if the associated [`NatExpr::Eval`]
+//! is accessed.
+//!
+//! Most importantly, [`If`] is implemented such that only the necessary branch is evaluated,
+//! which means it is possible to do recursion with it.
 //!
 //! All operations in this module are lazy. In order to get a [`Nat`] from them, e.g. for use
-//! with [arrays](crate::array), one has to use [`crate::Eval`] to evaluate them.
-//!
-//! Lazy operations are in contrast to type aliases, e.g. `type Inc<N> = gnat::Eval<Add<N, _1>>`,
-//! which directly expand at the usage site, though they can still be lazy if they expand to
-//! a lazy operation and don't convert anything to a [`Nat`].
+//! with [arrays](crate::array), use [`crate::Eval`] to evaluate them.
 //!
 //! # Primitive operations
 //! Operations that are implemented through a dedicated associated type are called primitive.
@@ -26,7 +24,7 @@
 //!     - Evaluates like `2 * N.eval() + (B.eval() != 0) as _`
 //! - [`If<C, T, F>`] evaluates to [`T::Eval`](NatExpr) if `C` is nonzero, otherwise
 //!   to [`F::Eval`](NatExpr). Only the necessary [`NatExpr::Eval`] projection is accessed.
-//!     - Equivalent like `if C != 0 { T.eval() } else { F.eval() }`
+//!     - Evaluates like `if C != 0 { T.eval() } else { F.eval() }`
 //!
 //! These primitives, together with [`NatExpr`] implementations based on them (and [`crate::Eval`]),
 //! are sufficient for a [Turing-complete](https://en.wikipedia.org/wiki/Turing_completeness)
