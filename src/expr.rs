@@ -303,7 +303,7 @@ pub use trivial::{IsNonzero, IsZero};
 mod testing;
 
 mod bitmath;
-pub use bitmath::{BitAnd, BitOr, BitXor, CountOnes};
+pub use bitmath::{BitAnd, BitOr, BitXor};
 
 mod log;
 pub use log::{BaseLen, Log};

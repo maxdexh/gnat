@@ -68,8 +68,3 @@ pub type _CountOnes<N> = add::_PlusBit<
     _CountOnes<_H<N>>, //
     _P<N>,
 >;
-
-/// Type-level [`count_ones`](usize::count_ones)
-#[apply(opaque)]
-#[apply(test_op! test_count_ones, N.count_ones().into())]
-pub type CountOnes<N> = _CountOnes;
