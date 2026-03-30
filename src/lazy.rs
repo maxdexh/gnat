@@ -42,7 +42,7 @@
 //! computed when it is projected to [`NatExpr::Eval`]. For example, consider the following
 //! implementation of [`BitAnd`]:
 //! ```
-//! use gnat::{NatExpr, small::*, expr::*, nat};
+//! use gnat::{NatExpr, small::*, lazy::*, nat};
 //! // MyBitAnd is a struct implementing NatExpr, i.e. a lazy operation
 //! pub struct MyBitAnd<L, R>(L, R);
 //! impl<L: NatExpr, R: NatExpr> NatExpr for MyBitAnd<L, R> {
@@ -109,7 +109,7 @@
 //!
 //! # Complete example implementation of [`BitAnd`]
 //! ```
-//! use gnat::{NatExpr, small::*, expr::*, nat};
+//! use gnat::{NatExpr, small::*, lazy::*, nat};
 //! pub struct _MyBitAnd<L, R>(L, R); // hide this in a private module
 //! impl<L: NatExpr, R: NatExpr> NatExpr for _MyBitAnd<L, R> {
 //!     type Eval = nat::Eval<If<
@@ -187,7 +187,7 @@ macro_rules! lazy {
     ) => {
         $(#[$attr])*
         pub struct $Name<$($P $(= $Def)?),*>($($P),*);
-        crate::expr::lazy_impl! {
+        crate::lazy::lazy_impl! {
             type $Name<$($P),*> = $Val;
         }
     };
@@ -197,13 +197,13 @@ pub(crate) use lazy;
 /// Variadic [`Opaque`]
 macro_rules! VarOpaque {
     ($($LazyBase:ident)::+<$($P:ident),* $(,)?>) => {
-        crate::expr::VarOpaque!(
+        crate::lazy::VarOpaque!(
             @$($P)*,
             $($LazyBase)::+<$($P),*>
         )
     };
     (@$P:ident $($Ps:ident)*, $Out:ty) => {
-        crate::expr::Opaque<$P, crate::expr::VarOpaque!(@$($Ps)*, $Out)>
+        crate::lazy::Opaque<$P, crate::lazy::VarOpaque!(@$($Ps)*, $Out)>
     };
     (@, $Out:ty) => {
         $Out
@@ -231,9 +231,9 @@ macro_rules! opaque {
         #[allow(unused)] // Ensure that LazyBase is spanned for LSP
         const _: () = { use $LazyBase; };
 
-        $crate::expr::lazy! {
+        $crate::lazy::lazy! {
             $(#[$attr])*
-            pub type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = $crate::nat::Eval<$crate::expr::VarOpaque!($LazyBase<$($P),*>)>;
+            pub type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = $crate::nat::Eval<$crate::lazy::VarOpaque!($LazyBase<$($P),*>)>;
         }
     };
 }
@@ -245,7 +245,7 @@ macro_rules! test_op {
         $v:vis $kw:ident $TypeName:ident<$($P:ident $(= $Def:ty)?),* $(,)?> $($rest:tt)*
     ) => {
         #[cfg(test)]
-        crate::expr::testing::test_op! { $test_name: $($P)*, $TypeName<$($P),*>, $($args)* }
+        crate::lazy::testing::test_op! { $test_name: $($P)*, $TypeName<$($P),*>, $($args)* }
 
         $(#[$attr])*
         $v $kw $TypeName<$($P $(= $Def)?),*> $($rest)*
@@ -258,10 +258,10 @@ macro_rules! op_examples {
         $(, ($farg:literal $(, $arg:literal)* $(,)?) == $res:literal )* $(,)?
     ) => {
         core::concat!(
-            "```\nuse gnat::{expr, small::*};\n# macro_rules! assert_nat_eq { ($nat:ty, $val:expr) => { assert_eq!(gnat::nat::to_u128::<$nat>(), Some($val)) } }\n",
+            "```\nuse gnat::{lazy, small::*};\n# macro_rules! assert_nat_eq { ($nat:ty, $val:expr) => { assert_eq!(gnat::nat::to_u128::<$nat>(), Some($val)) } }\n",
             $(
                 core::concat!(
-                    "assert_nat_eq!(expr::",
+                    "assert_nat_eq!(lazy::",
                     core::stringify!($opname),
                     "<N",
                     $farg,
@@ -283,7 +283,7 @@ macro_rules! base_case {
         $v:vis type $Name:ident<$($P:ident $(: $Bound:path)? $(= $Def:ty)?),* $(,)?> $(: $OutBound:path)? = $Val:ty;
     ) => {
         $(#[$attr])*
-        $v type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = crate::expr::If<
+        $v type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = crate::lazy::If<
             $CheckZero,
             $Val,
             $IfZero,

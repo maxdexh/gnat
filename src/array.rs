@@ -32,7 +32,7 @@ use crate::internals;
 ///       When the array is dropped, exactly `N` instances of `T` are dropped
 ///       ([in order](https://doc.rust-lang.org/reference/destructors.html)), even if `N > usize::MAX`.
 ///     - Note that together with the point about the layout, this is sufficient to perform arbitrary
-///       casts and transmutes between equivalent array types. See the [`convert`] module.
+///       casts and transmutes between equivalent array types. See the [`arr_api`] module.
 /// - `MaybeUninit<[T; N]>` and `[MaybeUninit<T>; N]` are considered equivalent for the purposes of
 ///   this trait.
 /// - Arrays of arrays are equivalent to their flattened versions, e.g. `[[i32; 4]; 3]` is
@@ -49,7 +49,7 @@ pub use crate::internals::array_types::*;
 /// A newtype adapter for an array implementor that the API relating to arrays.
 ///
 /// The struct has a second generic parameter which is always the item of the array.
-/// This gives better lifetime inferrence for the item type. Some methods, such as
+/// This gives better lifetime inference for the item type. Some methods, such as
 /// [`Self::each_ref`] and the [`Index`](core::ops::Index) impl would not compile
 /// the way they are written without it.
 #[repr(transparent)]

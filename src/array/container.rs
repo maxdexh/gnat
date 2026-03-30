@@ -3,7 +3,7 @@ use crate::{
     array::{helper::*, *},
     nat,
 };
-use crate::{condty, expr, utils};
+use crate::{condty, lazy, utils};
 use core::marker::PhantomData;
 use core::mem::MaybeUninit;
 
@@ -95,14 +95,14 @@ where
     }
 }
 
-pub type PopDigit<N> = nat::Eval<expr::_Shr<N, crate::consts::PtrBits>>;
+pub type PopDigit<N> = nat::Eval<lazy::_Shr<N, crate::consts::PtrBits>>;
 
-#[utils::apply(expr::lazy)]
+#[utils::apply(lazy::lazy)]
 pub type _DigitLenRec<N> = _DigitLen<PopDigit<N>>;
-#[utils::apply(expr::lazy)]
-pub type _DigitLen<N> = expr::If<
+#[utils::apply(lazy::lazy)]
+pub type _DigitLen<N> = lazy::If<
     N,
-    expr::_Inc<_DigitLenRec<N>>, //
+    lazy::_Inc<_DigitLenRec<N>>, //
     nat::lit!(0),
 >;
 pub type DigitLen<N> = nat::Eval<_DigitLen<N>>;

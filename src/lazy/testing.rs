@@ -1,8 +1,8 @@
 #![cfg(test)]
 
-use crate::{Nat, expr, nat, small::*};
+use crate::{Nat, lazy, nat, small::*};
 
-pub(crate) type SatDec<N> = nat::Eval<expr::If<N, expr::_DecUnchecked<N>, N0>>;
+pub(crate) type SatDec<N> = nat::Eval<lazy::If<N, lazy::_DecUnchecked<N>, N0>>;
 
 /// The test runner for all operations uses [`SatDec`] to traverse a range of inputs.
 /// This test is there to ensure that it behaves correctly.
@@ -25,10 +25,10 @@ fn test_satdec() {
 const MORE_TESTS: bool = option_env!("more_nat_tests").is_some();
 const SKIP_TESTS: bool = option_env!("skip_nat_tests").is_some();
 pub(crate) type DefaultHi = nat::Eval<
-    expr::If<
+    lazy::If<
         crate::consts::Bool<SKIP_TESTS>,
         N0,
-        expr::If<
+        lazy::If<
             crate::consts::Bool<MORE_TESTS>, //
             nat::lit!(50),
             nat::lit!(10),
@@ -70,7 +70,7 @@ impl<N: Nat, L: NatList> NatList for (N, L) {
     const EMPTY: bool = false;
     type First = N;
     type Tail = L;
-    type Len = nat::Eval<expr::_Inc<L::Len>>;
+    type Len = nat::Eval<lazy::_Inc<L::Len>>;
 
     type ReduceTestsArgs<T: Tests<RangesLo = Self>> =
         <L as NatList>::ReduceTestsArgs<FirstArgTestsTraverser<T>>;
@@ -147,7 +147,7 @@ macro_rules! test_op {
         $expect:expr
         $(, $( $range:tt )* )?
     ) => {
-        crate::expr::testing::test_op! {
+        crate::lazy::testing::test_op! {
             @shift
             $name
             [$first $($param)*],
@@ -170,19 +170,19 @@ macro_rules! test_op {
         #[test]
         fn $name() {
             struct Leaf;
-            type LeafInputLen = crate::expr::testing::InputLen<Leaf>;
-            impl crate::expr::testing::Tests for Leaf {
-                type RangesLo = crate::expr::testing::test_op!(
+            type LeafInputLen = crate::lazy::testing::InputLen<Leaf>;
+            impl crate::lazy::testing::Tests for Leaf {
+                type RangesLo = crate::lazy::testing::test_op!(
                     @ranges lo
                     [ $first $($param)* ]
                     $($range)*
                 );
-                type RangesHi = crate::expr::testing::test_op!(
+                type RangesHi = crate::lazy::testing::test_op!(
                     @ranges hi
                     [ $first $($param)* ]
                     $($range)*
                 );
-                fn run_tests_on<L: crate::expr::testing::NatList<Len = LeafInputLen>>() {
+                fn run_tests_on<L: crate::lazy::testing::NatList<Len = LeafInputLen>>() {
                     Flattener::<L>::doit()
                 }
             }
@@ -191,13 +191,13 @@ macro_rules! test_op {
                 // Name a list using each param. The tail of the list
                 // is the parameter after it. For the last parameter,
                 // the tail doesn't matter, so use an extra dummy param.
-                $first: crate::expr::testing::NatList<
+                $first: crate::lazy::testing::NatList<
                     Tail = $fshifted
                 >
-                $(, $param: crate::expr::testing::NatList<
+                $(, $param: crate::lazy::testing::NatList<
                     Tail = $shifted
                 >)*
-                , __Extra: crate::expr::testing::NatList
+                , __Extra: crate::lazy::testing::NatList
             > Flattener<$first> {
                 fn doit() {
                     // By generating code that has an explicit name for each
@@ -224,7 +224,7 @@ macro_rules! test_op {
                 );
             }
 
-            crate::expr::testing::run_tests::<Leaf>()
+            crate::lazy::testing::run_tests::<Leaf>()
         }
     };
     (
@@ -246,8 +246,8 @@ macro_rules! test_op {
         [ $_:ident $($rest:ident)* ]
     ) => {
         (
-            crate::expr::testing::test_op!(@select $what crate::expr::testing::DefaultLo, crate::expr::testing::DefaultHi),
-            crate::expr::testing::test_op!(@ranges $what [$($rest)*]),
+            crate::lazy::testing::test_op!(@select $what crate::lazy::testing::DefaultLo, crate::lazy::testing::DefaultHi),
+            crate::lazy::testing::test_op!(@ranges $what [$($rest)*]),
         )
     };
     (
@@ -257,8 +257,8 @@ macro_rules! test_op {
         $(, $($range_rest:tt)*)?
     ) => {
         (
-            crate::expr::testing::test_op!(@select $what crate::expr::testing::DefaultLo, crate::expr::testing::DefaultHi),
-            crate::expr::testing::test_op!(@ranges $what [$($rest)*] $(, $($range_rest)*)?),
+            crate::lazy::testing::test_op!(@select $what crate::lazy::testing::DefaultLo, crate::lazy::testing::DefaultHi),
+            crate::lazy::testing::test_op!(@ranges $what [$($rest)*] $(, $($range_rest)*)?),
         )
     };
     (
@@ -268,8 +268,8 @@ macro_rules! test_op {
         $(, $($range_rest:tt)*)?
     ) => {
         (
-            crate::expr::testing::test_op!(@select $what crate::expr::testing::test_op!(@bound $lo), crate::expr::testing::DefaultHi),
-            crate::expr::testing::test_op!(@ranges $what [$($rest)*] $(, $($range_rest)*)?),
+            crate::lazy::testing::test_op!(@select $what crate::lazy::testing::test_op!(@bound $lo), crate::lazy::testing::DefaultHi),
+            crate::lazy::testing::test_op!(@ranges $what [$($rest)*] $(, $($range_rest)*)?),
         )
     };
     (
@@ -279,8 +279,8 @@ macro_rules! test_op {
         $(, $($range_rest:tt)*)?
     ) => {
         (
-            crate::expr::testing::test_op!(@select $what crate::expr::testing::DefaultLo, crate::expr::testing::test_op!(@bound $hi)),
-            crate::expr::testing::test_op!(@ranges $what [$($rest)*] $(, $($range_rest)*)?),
+            crate::lazy::testing::test_op!(@select $what crate::lazy::testing::DefaultLo, crate::lazy::testing::test_op!(@bound $hi)),
+            crate::lazy::testing::test_op!(@ranges $what [$($rest)*] $(, $($range_rest)*)?),
         )
     };
     (
@@ -290,8 +290,8 @@ macro_rules! test_op {
         $(, $($range_rest:tt)*)?
     ) => {
         (
-            crate::expr::testing::test_op!(@select $what crate::expr::testing::test_op!(@bound $lo), crate::expr::testing::test_op!(@bound $hi)),
-            crate::expr::testing::test_op!(@ranges $what [$($rest)*] $(, $($range_rest)*)?),
+            crate::lazy::testing::test_op!(@select $what crate::lazy::testing::test_op!(@bound $lo), crate::lazy::testing::test_op!(@bound $hi)),
+            crate::lazy::testing::test_op!(@ranges $what [$($rest)*] $(, $($range_rest)*)?),
         )
     };
     (@bound $n:ty) => { $n };

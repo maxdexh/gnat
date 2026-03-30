@@ -4,7 +4,7 @@
 
 #[allow(unused_imports)] // for docs
 use crate::{Nat, NatExpr};
-use crate::{expr, nat, small::*};
+use crate::{lazy, nat, small::*};
 
 /// Holds a const [`u128`]
 ///
@@ -28,13 +28,13 @@ impl NatExpr for Bool<false> {
 }
 
 /// [`usize::BITS`] as a [`Nat`]
-pub type PtrBits = nat::Eval<expr::Shl<Usize<{ size_of::<usize>() }>, nat::lit!(3)>>;
+pub type PtrBits = nat::Eval<lazy::Shl<Usize<{ size_of::<usize>() }>, nat::lit!(3)>>;
 
 /// [`usize::MAX`] as a [`Nat`]
-pub type UsizeMax = nat::Eval<expr::SatSub<expr::Shl<N1, PtrBits>, N1>>;
+pub type UsizeMax = nat::Eval<lazy::SatSub<lazy::Shl<N1, PtrBits>, N1>>;
 
 /// [`isize::MAX`] as a [`Nat`]
-pub type IsizeMax = nat::Eval<expr::PopBit<UsizeMax>>;
+pub type IsizeMax = nat::Eval<lazy::PopBit<UsizeMax>>;
 
 #[test]
 fn test_usize_max() {
@@ -50,8 +50,8 @@ macro_rules! gen_maxes {
         $(
             #[doc = concat!("[`", stringify!($prim), "::MAX`] as a [`Nat`]")]
             pub type $name = nat::Eval<
-                crate::expr::_DecUnchecked<
-                    crate::expr::Shl<N1, $bits>
+                crate::lazy::_DecUnchecked<
+                    crate::lazy::Shl<N1, $bits>
                 >
             >;
         )*

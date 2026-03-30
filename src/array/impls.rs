@@ -2,8 +2,8 @@ use crate::{
     Nat,
     array::{helper::*, *},
     condty::CondResult,
-    expr,
     internals::ArraySealed,
+    lazy,
 };
 
 // SAFETY: By definition
@@ -34,14 +34,14 @@ impl<A: Array> ArraySealed for ArrApi<A> {}
 // in accordance with array layout
 unsafe impl<T, A: Array<Item = T>, B: Array<Item = T>> Array for ArrConcat<A, B> {
     type Item = T;
-    type Length = crate::nat::Eval<crate::expr::Add<A::Length, B::Length>>;
+    type Length = crate::nat::Eval<crate::lazy::Add<A::Length, B::Length>>;
 }
 impl<T, A: Array<Item = T>, B: Array<Item = T>> ArraySealed for ArrConcat<A, B> {}
 
 // SAFETY: repr(transparent), `[[T; M]; N]` is equivalent to `[T; M * N]`
 unsafe impl<A: Array<Item = B>, B: Array> Array for ArrFlatten<A> {
     type Item = B::Item;
-    type Length = crate::nat::Eval<crate::expr::Mul<A::Length, B::Length>>;
+    type Length = crate::nat::Eval<crate::lazy::Mul<A::Length, B::Length>>;
 }
 impl<A: Array<Item = B>, B: Array> ArraySealed for ArrFlatten<A> {}
 
@@ -141,11 +141,11 @@ where
     /// This method supports arrays with lengths exceeding [`usize::MAX`].
     pub const fn try_retype<Dst: Array<Item = T>>(
         self,
-    ) -> CondResult<expr::Eq<N, Dst::Length>, Dst, Self> {
+    ) -> CondResult<lazy::Eq<N, Dst::Length>, Dst, Self> {
         arr_api::try_retype(self)
     }
 
-    /// Concatenates the inner array with `rhs` via [`Concat`].
+    /// Concatenates the inner array with `rhs` via [`ArrConcat`].
     ///
     /// This method supports arrays with lengths exceeding [`usize::MAX`].
     pub const fn concat<Rhs>(self, rhs: Rhs) -> ArrApi<ArrConcat<A, Rhs>>
@@ -155,7 +155,7 @@ where
         ArrApi::new(ArrConcat(self.into_inner(), rhs))
     }
 
-    /// Flattens the inner array via [`Flatten`].
+    /// Flattens the inner array via [`ArrFlatten`].
     ///
     /// This method supports arrays with lengths exceeding [`usize::MAX`].
     pub const fn flatten(self) -> ArrApi<ArrFlatten<A>>

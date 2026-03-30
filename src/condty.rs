@@ -32,7 +32,7 @@ use crate::{NatExpr, nat};
 ///
 /// This type's disadvantage compared to [`CondResult`] are the usual use cases for a newtype wrapper:
 /// It is not possible to use impls of `T` and `F` if `C` is generic, it does not play nicely with
-/// type inferrence (especially of `C`) and it can't have methods. Its "methods" are defined as
+/// type inference (especially of `C`) and it can't have methods. Its "methods" are defined as
 /// functions in the [`direct`] module.
 #[allow(type_alias_bounds)]
 pub type CondTy<Cond: NatExpr, True, False> = crate::internals::CondTy<Cond::Eval, True, False>;
@@ -55,7 +55,7 @@ pub struct CondResult<Cond: NatExpr, T, E> {
 }
 impl<C: NatExpr, T, E> CondResult<C, T, E> {
     /// Turns this result into its wrapped [`CondTy`] by moving out of
-    /// [`self.direct`](Self::direct).
+    /// [`self.inner`](Self::inner).
     ///
     /// Also works in const contexts, even when generics or drop impls are involved.
     pub const fn into_inner(self) -> CondTy<C, T, E> {
@@ -201,7 +201,7 @@ pub struct CondOption<Cond: NatExpr, T> {
 
 impl<C: NatExpr, T> CondOption<C, T> {
     /// Turns this option into its wrapped [`CondTy`] by moving out of
-    /// [`self.direct`](Self::direct).
+    /// [`self.inner`](Self::inner).
     ///
     /// Also works in const contexts, even when generics or drop impls are involved.
     pub const fn into_inner(self) -> CondTy<C, T, ()> {

@@ -32,7 +32,7 @@ mod utils;
 pub mod array;
 pub mod condty;
 pub mod consts;
-pub mod expr;
+pub mod lazy;
 pub mod nat;
 pub mod small;
 
@@ -52,7 +52,7 @@ pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 /// A type that can be turned into a [`Nat`]
 ///
 /// This is not only a conversion trait, but forms an important part in how most operations are
-/// implemented. See the [`expr`] module.
+/// implemented. See the [`lazy`] module.
 #[diagnostic::on_unimplemented(
     message = "Cannot convert `{Self}` to a `Nat`",
     label = "To be used like a `Nat`, `{Self}` must implement `NatExpr`"

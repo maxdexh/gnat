@@ -8,7 +8,7 @@ use super::*;
 /// This, together with [`LastBit`] and [`If`], can be used to implement operations that
 /// recursively destructure a number and accumulate a result.
 ///
-/// See the [module level documentation](crate::expr) for details on how to combine
+/// See the [module level documentation](crate::lazy) for details on how to combine
 /// primitive operations.
 #[apply(lazy)]
 pub type PopBit<N> = InternalOp!(nat::Eval<N>, PopBit);
@@ -21,7 +21,7 @@ pub type PopBit<N> = InternalOp!(nat::Eval<N>, PopBit);
 /// This, together with [`PopBit`] and [`If`], can be used to implement operations that
 /// recursively destructure a number and accumulate a result.
 ///
-/// See the [module level documentation](crate::expr) for details on how to combine
+/// See the [module level documentation](crate::lazy) for details on how to combine
 /// primitive operations.
 #[apply(lazy)]
 pub type LastBit<N> = InternalOp!(nat::Eval<N>, LastBit);
@@ -34,7 +34,7 @@ pub type LastBit<N> = InternalOp!(nat::Eval<N>, LastBit);
 /// or `BitOr<Shl<N, _1>, IsNonzero<P>>`. It is meant to be used for building the
 /// output of an operation recursively bit-by-bit.
 ///
-/// See the [module level documentation](crate::expr) for details on how to combine
+/// See the [module level documentation](crate::lazy) for details on how to combine
 /// primitive operations.
 #[apply(lazy)]
 pub type PushBit<N, P> = InternalOp!(nat::Eval<P>, PushSelfAsBit<nat::Eval<N>>);
@@ -49,7 +49,7 @@ pub type PushBit<N, P> = InternalOp!(nat::Eval<P>, PushSelfAsBit<nat::Eval<N>>);
 /// i.e. the other branch is not evaluated and thus cannot lead to cycles. This allows
 /// breaking out of recursively implemented operations.
 ///
-/// See the [module level documentation](crate::expr) for details on how to combine
+/// See the [module level documentation](crate::lazy) for details on how to combine
 /// primitive operations.
 ///
 /// # Opaqueness
@@ -66,7 +66,7 @@ pub type If<C, T, F> = InternalOp!(nat::Eval<C>, If<T, F>);
 /// going through a projection via an internal associated type on
 /// [`P::Eval`](NatExpr).
 ///
-/// See the [module level documentation](crate::expr) for details on opaqueness.
+/// See the [module level documentation](crate::lazy) for details on opaqueness.
 #[apply(lazy)]
 pub type Opaque<P, Out> = nat::Eval<InternalOp!(nat::Eval<P>, Opaque<Out>)>;
 
