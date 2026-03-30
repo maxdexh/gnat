@@ -65,7 +65,7 @@
 //! }
 //! check_input::<N3, N5>();
 //! check_input::<N59, N122>();
-//! check_input::<nat::lit!(0b10101000110111111), nat::lit!(0b11110111011111)>()
+//! check_input::<gnat::lit!(0b10101000110111111), gnat::lit!(0b11110111011111)>()
 //! ```
 //! Because `MyBitAnd` is [`NatExpr`] here and [`If`] works by only evaluating
 //! [`NatExpr::Eval`] for the branch that is needed for the output, this will
@@ -134,7 +134,7 @@
 //! }
 //! check_input::<N3, N5>();
 //! check_input::<N59, N122>();
-//! check_input::<nat::lit!(0b10101000110111111), nat::lit!(0b11110111011111)>()
+//! check_input::<gnat::lit!(0b10101000110111111), gnat::lit!(0b11110111011111)>()
 //! ```
 
 #[expect(unused_imports)] // for docs

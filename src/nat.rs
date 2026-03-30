@@ -7,35 +7,6 @@ use crate::{Nat, NatExpr, lazy, maxint::Umax, nat};
 /// Alias for [`NatExpr::Eval`].
 pub type Eval<N> = <N as NatExpr>::Eval;
 
-/// Turns an integer literal into a [`Nat`].
-///
-/// If you have a small constant value that is not a literal, use [`nat::EvalU128`].
-///
-/// # Examples
-/// ```
-/// #![recursion_limit = "1024"] // `lit!` doesn't recurse, the type is just long
-///
-/// use gnat::nat;
-/// assert_eq!(nat::to_u128::<nat::lit!(1)>(), Some(1));
-/// assert_eq!(
-///     nat::to_u128::<nat::lit!(100000000000000000000000000000)>(),
-///     Some(100000000000000000000000000000),
-/// )
-/// ```
-#[macro_export]
-#[doc(hidden)]
-macro_rules! __lit {
-    ($l:literal) => {
-        $crate::__mac::proc::__lit! {
-            ($l)
-            ($crate::__mac::lit::_DirectAppend)
-            ($crate::small::N0)
-            ($crate::small::N1)
-        }
-    };
-}
-pub use __lit as lit;
-
 const fn to_umax_overflowing<N: Nat>() -> (Umax, bool) {
     const {
         if is_zero::<N>() {
@@ -71,10 +42,10 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
                 doit::<
                     nat::Eval<
                         // Pop a digit
-                        lazy::Div<N, nat::lit!(10)>,
+                        lazy::Div<N, crate::lit!(10)>,
                     >,
                 >(),
-                &[b'0' + to_usize::<lazy::Rem<N, nat::lit!(10)>>().unwrap() as u8],
+                &[b'0' + to_usize::<lazy::Rem<N, crate::lit!(10)>>().unwrap() as u8],
             ];
         }
         const fn doit<N: Nat>() -> &'static [u8] {

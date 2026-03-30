@@ -61,3 +61,30 @@ pub trait NatExpr {
     /// Performs the conversion to [`Nat`].
     type Eval: Nat;
 }
+
+/// Turns an integer literal into a [`Nat`].
+///
+/// If you have a small constant value that is not a literal, use [`consts::Usize`].
+///
+/// # Examples
+/// ```
+/// #![recursion_limit = "1024"] // `lit!` doesn't recurse, the type is just long
+///
+/// use gnat::nat;
+/// assert_eq!(nat::to_u128::<gnat::lit!(1)>(), Some(1));
+/// assert_eq!(
+///     nat::to_u128::<gnat::lit!(100000000000000000000000000000)>(),
+///     Some(100000000000000000000000000000),
+/// )
+/// ```
+#[macro_export]
+macro_rules! lit {
+    ($l:literal) => {
+        $crate::__mac::proc::__lit! {
+            ($l)
+            ($crate::__mac::lit::_DirectAppend)
+            ($crate::small::N0)
+            ($crate::small::N1)
+        }
+    };
+}

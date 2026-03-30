@@ -103,7 +103,7 @@ pub type _DigitLenRec<N> = _DigitLen<PopDigit<N>>;
 pub type _DigitLen<N> = lazy::If<
     N,
     lazy::_Inc<_DigitLenRec<N>>, //
-    nat::lit!(0),
+    crate::lit!(0),
 >;
 pub type DigitLen<N> = nat::Eval<_DigitLen<N>>;
 

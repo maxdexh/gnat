@@ -30,8 +30,8 @@ pub(crate) type DefaultHi = nat::Eval<
         N0,
         lazy::If<
             crate::consts::Bool<MORE_TESTS>, //
-            nat::lit!(50),
-            nat::lit!(10),
+            crate::lit!(50),
+            crate::lit!(10),
         >,
     >,
 >;

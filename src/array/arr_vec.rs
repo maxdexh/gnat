@@ -192,7 +192,7 @@ where
     /// ```
     /// use gnat::{array::*, nat};
     ///
-    /// type A = Arr<i32, nat::lit!(10)>;
+    /// type A = Arr<i32, gnat::lit!(10)>;
     /// assert_eq!(ArrVecApi::<A>::new(), []);
     /// ```
     pub const fn new() -> Self {

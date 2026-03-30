@@ -28,7 +28,7 @@ impl NatExpr for Bool<false> {
 }
 
 /// [`usize::BITS`] as a [`Nat`]
-pub type PtrBits = nat::Eval<lazy::Shl<Usize<{ size_of::<usize>() }>, nat::lit!(3)>>;
+pub type PtrBits = nat::Eval<lazy::Shl<Usize<{ size_of::<usize>() }>, crate::lit!(3)>>;
 
 /// [`usize::MAX`] as a [`Nat`]
 pub type UsizeMax = nat::Eval<lazy::SatSub<lazy::Shl<N1, PtrBits>, N1>>;
@@ -65,14 +65,14 @@ macro_rules! gen_maxes {
     };
 }
 gen_maxes![
-    [I8Max, nat::lit!(7), i8],
-    [U8Max, nat::lit!(8), u8],
-    [I16Max, nat::lit!(15), i16],
-    [U16Max, nat::lit!(16), u16],
-    [I32Max, nat::lit!(31), i32],
-    [U32Max, nat::lit!(32), u32],
-    [I64Max, nat::lit!(63), i64],
-    [U64Max, nat::lit!(64), u64],
-    [I128Max, nat::lit!(127), i128],
-    [U128Max, nat::lit!(128), u128],
+    [I8Max, crate::lit!(7), i8],
+    [U8Max, crate::lit!(8), u8],
+    [I16Max, crate::lit!(15), i16],
+    [U16Max, crate::lit!(16), u16],
+    [I32Max, crate::lit!(31), i32],
+    [U32Max, crate::lit!(32), u32],
+    [I64Max, crate::lit!(63), i64],
+    [U64Max, crate::lit!(64), u64],
+    [I128Max, crate::lit!(127), i128],
+    [U128Max, crate::lit!(128), u128],
 ];

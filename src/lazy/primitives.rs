@@ -99,5 +99,5 @@ fn opaqueness_tests() {
         check_proven_identical!(false, nat::Eval<Opaque<B, A>>, Opaque<A, A>);
         check_proven_identical!(false, nat::Eval<PopBit<PushBit<N0, A>>>, N0);
     }
-    accept::<nat::lit!(3), nat::lit!(7)>();
+    accept::<crate::lit!(3), crate::lit!(7)>();
 }

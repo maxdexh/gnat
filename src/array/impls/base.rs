@@ -27,7 +27,7 @@ where
     /// ```
     /// use gnat::{array::*, nat};
     ///
-    /// let arr = CopyArr::<_, nat::lit!(20_000)>::from_fn(|i| i);
+    /// let arr = CopyArr::<_, gnat::lit!(20_000)>::from_fn(|i| i);
     /// assert_eq!(arr.try_into_builtin::<19_999>(), Err(arr));
     /// assert_eq!(arr.try_into_builtin::<20_001>(), Err(arr));
     /// let builtin: [_; 20_000] = arr.try_into_builtin().unwrap();
@@ -54,8 +54,8 @@ where
     /// # Examples
     /// Creating an array of integers.
     /// ```
-    /// use gnat::{array::*, nat};
-    /// let arr = Arr::<_, nat::lit!(4)>::of(1);
+    /// use gnat::array::*;
+    /// let arr = Arr::<_, gnat::lit!(4)>::of(1);
     /// assert_eq!(arr, [1; 4]);
     /// ```
     ///
@@ -63,7 +63,7 @@ where
     /// ```
     /// #![recursion_limit = "1024"]
     /// use gnat::{array::*, nat, lazy, consts::{PtrBits, UsizeMax}};
-    /// type LargeSize = nat::Eval<lazy::Shl<nat::lit!(1), PtrBits>>;
+    /// type LargeSize = nat::Eval<lazy::Shl<gnat::lit!(1), PtrBits>>;
     /// assert!(nat::to_usize::<LargeSize>().is_none());
     /// let arr = Arr::<_, LargeSize>::of(());
     /// let ArrConcat(most, [()]): ArrConcat<CopyArr<_, UsizeMax>, _> = arr.retype();
@@ -139,7 +139,7 @@ where
     /// use gnat::{NatExpr, Nat, nat, lazy, array::{Arr, ArrApi}};
     /// use core::mem::MaybeUninit;
     ///
-    /// type BinaryLen<N> = nat::Eval<lazy::BaseLen<nat::lit!(2), N>>;
+    /// type BinaryLen<N> = nat::Eval<lazy::BaseLen<gnat::lit!(2), N>>;
     /// const fn to_binary_arr<N: Nat>() -> Arr<u8, BinaryLen<N>> {
     ///     let last_bit = [
     ///         b'0' + !nat::is_zero::<lazy::LastBit::<N>>() as u8
@@ -183,7 +183,7 @@ where
     ///         Err(_) => unreachable!(),
     ///     }
     /// }
-    /// assert_eq!(to_str_binary::<nat::lit!(0b100100010100)>(), "100100010100");
+    /// assert_eq!(to_str_binary::<gnat::lit!(0b100100010100)>(), "100100010100");
     /// ```
     pub const fn into_uninit_builtin<const M: usize>(self) -> [MaybeUninit<T>; M] {
         // SAFETY:
