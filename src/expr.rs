@@ -151,18 +151,9 @@ macro_rules! lazy_impl {
         $(())?
         type $Name:ident<$($P:ident $(= $_:ty)?),* $(,)?> = $Val:ty;
     ) => {
+        // FIXME: Measure time impact of only requiring NatExpr for recursive ops
+        // that use Nat internally
         impl<$($P: crate::NatExpr),*> crate::NatExpr for $Name<$($P),*> {
-            #[doc(hidden)]
-            type Eval = crate::Eval<$Val>;
-        }
-    };
-    (
-        $(())?
-        $(#[$attr:meta])*
-        type $Name:ident<$($P:ident: $Bound:path $(= $_:ty)?),* $(,)?>: $OutBound:path = $Val:ty;
-    ) => {
-        $(#[$attr])*
-        impl<$($P: $Bound),*> $OutBound for $Name<$($P),*> {
             #[doc(hidden)]
             type Eval = crate::Eval<$Val>;
         }
@@ -278,21 +269,6 @@ macro_rules! op_examples {
             )*
             "```",
         )
-    };
-}
-
-macro_rules! base_case {
-    (
-        (0 == $CheckZero:ty => $IfZero:ty)
-        $(#[$attr:meta])*
-        $v:vis type $Name:ident<$($P:ident $(: $Bound:path)? $(= $Def:ty)?),* $(,)?> $(: $OutBound:path)? = $Val:ty;
-    ) => {
-        $(#[$attr])*
-        $v type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = crate::expr::If<
-            $CheckZero,
-            $Val,
-            $IfZero,
-        >;
     };
 }
 

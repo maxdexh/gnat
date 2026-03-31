@@ -1,67 +1,64 @@
 use super::*;
 
-/// `SubIfGe(L, R) := if L >= R { L - R } else { L }`
+// SubIfGe(L, R) := if L >= R { L - R } else { L }
 type _SubIfGe<L, R> = If<
-    _Lt<L, R>, // Ge is implemented on top of Lt, use Lt directly
+    _Lt<L, R>, // Ge is implemented on top of Lt, so use Lt directly
     L,
     _SubUnchecked<L, R>,
 >;
 
-/// ```text
-/// NaiveRem(L, R) := 2 * (H % R) + P, where R > 0
-///
-/// H := H(L), P := P(L)
-/// ```
-///
-/// # Motivation
-/// ```text
-/// L % R = (2 * H + P) % R
-///       = (H + H + P) % R
-///       = ((H % R) + (H % R) + P) % R
-///       = (2 * (H % R) + P) % R
-///       = NaiveRem(L, R) % R
-/// ```
-#[apply(base_case! 0 == L => N0)] // NaiveRem(0, R) = 2 * (0 % R) + 0 = 0
+// NaiveRem(L, R) := 2 * (H(L) % R) + P(L), where R > 0
 #[apply(lazy)]
-pub type _NaiveRem<L, R> = PushBit<
-    _RemUnchecked<_H<L>, R>, //
-    _P<L>,
+pub type _NaiveRem<L, R> = If<
+    L,
+    PushBit<
+        _RemUnchecked<_H<L>, R>, //
+        _P<L>,
+    >,
+    // NaiveRem(0, R) = 2 * (0 % R) + 0 = 0
+    N0,
 >;
 
-/// ```text
-/// RemUnchecked(L, R) := L % R, where R > 0
-///
-/// H := H(L), P := P(L), R > 0
-///
-/// - H % R <= R - 1
-/// - NaiveRem(L, R) = 2 * (H % R) + P <= 2 * (H % R) + 1 <= 2 * R - 1
-/// => RemUnchecked(L, R) = L % R = NaiveRem(L, R) % R = SubIfGe(NaiveRem(L, R), R)
-/// ```
+// RemUnchecked(L, R) := L % R, where R > 0
+//
+// H := H(L), P := P(L), R > 0
+//
+// L % R = (2 * H + P) % R
+//       = (H + H + P) % R
+//       = ((H % R) + (H % R) + P) % R
+//       = (2 * (H % R) + P) % R
+//       = NaiveRem(L, R) % R
+//
+//      H % R <= R - 1
+// thus NaiveRem(L, R) = 2 * (H % R) + P <= 2 * (H % R) + 1 <= 2 * R - 1
+// thus RemUnchecked(L, R) = L % R = NaiveRem(L, R) % R = SubIfGe(NaiveRem(L, R), R)
 pub(crate) type _RemUnchecked<L, R> = _SubIfGe<_NaiveRem<L, R>, R>;
 
-/// DivUnchecked(L, R) := L / R, where R > 0
-///
-/// H := H(L), P := P(L)
-///
-/// Note that `H = (H / R) * R + H % R`, and
-/// For any `X`, `Y`: `(X * R + Y) / R = X + Y / R`
-///
-/// ```text
-/// L / R = (2 * H + P) / R
-///       = (2 * ((H / R) * R + H % R) + P) / R
-///       = (2 * (H / R) * R + 2 * (H % R) + P) / R
-///       = (2 * (H / R) * R + 2 * (H % R) + P) / R
-///       = 2 * (H / R) + (2 * (H % R) + P) / R
-///       = 2 * (H / R) + NaiveRem(L, R) / R
-/// ```
-///
-/// Since we still have NaiveRem(L, R) <= 2 * R - 1 (See [`_RemUnchecked`]),
-/// `NaiveRem(L, R) / R = if NaiveRem(L, R) >= R { 1 } else { 0 }`
-#[apply(base_case! 0 == L => N0)] // 0 / R = 0
+// DivUnchecked(L, R) := L / R, where R > 0
+//
+// H := H(L), P := P(L)
+//
+// Note that H = (H / R) * R + H % R, and
+// For any X, Y: (X * R + Y) / R = X + Y / R
+//
+// L / R = (2 * H + P) / R
+//       = (2 * ((H / R) * R + H % R) + P) / R
+//       = (2 * (H / R) * R + 2 * (H % R) + P) / R
+//       = (2 * (H / R) * R + 2 * (H % R) + P) / R
+//       = 2 * (H / R) + (2 * (H % R) + P) / R
+//       = 2 * (H / R) + NaiveRem(L, R) / R
+//
+// Since we still have NaiveRem(L, R) <= 2 * R - 1, it follows that
+// NaiveRem(L, R) / R = if NaiveRem(L, R) >= R { 1 } else { 0 }
 #[apply(lazy)]
-pub type _DivUnchecked<L, R> = PushBit<
-    _DivUnchecked<_H<L>, R>,
-    IsZero<_Lt<_NaiveRem<L, R>, R>>, //
+pub type _DivUnchecked<L, R> = If<
+    L,
+    PushBit<
+        _DivUnchecked<_H<L>, R>, //
+        IsZero<_Lt<_NaiveRem<L, R>, R>>,
+    >,
+    // 0 / R = 0
+    N0,
 >;
 
 #[apply(lazy)]

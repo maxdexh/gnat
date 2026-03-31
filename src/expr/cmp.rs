@@ -1,22 +1,24 @@
 use super::*;
 
-/// ```text
-/// Eq(L, R) := (L == R) = if L == R { 1 } else { 0 }
-///
-/// HL := H(L), PL := P(L), HR := H(R), PR := P(R)
-///
-///     L = R
-/// iff 2 * HL + PL = 2 * HR + PR
-/// iff PL = PR  and  HL = HR
-/// iff 1 = Xnor(PL, PR)  and  1 = Eq(HL, HR)
-/// iff 1 = if Xnor(PL, PR) == 1 { Eq(HL, HR) } else { 0 }
-/// ```
-#[apply(base_case! 0 == L => IsZero<R>)] // L = R  iff  R == 0
+// Eq(L, R) := (L == R) = if L == R { 1 } else { 0 }
+//
+// HL := H(L), PL := P(L), HR := H(R), PR := P(R)
+//
+//     L = R
+// iff 2 * HL + PL = 2 * HR + PR
+// iff PL = PR  and  HL = HR
+// iff 1 = Xnor(PL, PR)  and  1 = Eq(HL, HR)
+// iff 1 = if Xnor(PL, PR) == 1 { Eq(HL, HR) } else { 0 }
 #[apply(lazy)]
 pub type _Eq<L, R> = If<
-    _Xnor<_P<L>, _P<R>>,
-    _Eq<_H<R>, _H<L>>, // X == Y iff Y == X
-    N0,
+    L,
+    If<
+        _Xnor<_P<L>, _P<R>>,
+        _Eq<_H<R>, _H<L>>, // X == Y iff Y == X
+        N0,
+    >,
+    // 0 == R
+    IsZero<R>,
 >;
 
 /// Type-level [`==`](core::cmp::PartialEq)
@@ -37,24 +39,20 @@ pub type _Ne<L, R> = IsZero<Eq<L, R>>;
 #[apply(opaque)]
 pub type Ne<L, R> = _Ne;
 
-/// ```text
 /// LtByLast(L, R) := (H(L) == H(R) and P(L) == 0 and P(R) == 1)
-/// ```
 type _LtByLast<L, R> = _And<
     If<_P<L>, N0, _P<R>>, //
     _Eq<_H<L>, _H<R>>,
 >;
 
-/// ```text
-/// Lt(L, R) := (L < R) = if L < R { 1 } else { 0 }
-///
-/// HL := H(L), PL := P(L), HR := H(R), PR := P(R)
-///
-///     L < R
-/// iff 2 * HL + PL < 2 * HR + PR
-/// iff HL < HR or HL = HR and PL = 0 and PR = 1
-/// iff Lt(HL, HR) = 1 or LtByLast(L, R) = 1
-/// ```
+// Lt(L, R) := (L < R) = if L < R { 1 } else { 0 }
+//
+// HL := H(L), PL := P(L), HR := H(R), PR := P(R)
+//
+//     L < R
+// iff 2 * HL + PL < 2 * HR + PR
+// iff HL < HR or HL = HR and PL = 0 and PR = 1
+// iff Lt(HL, HR) = 1 or LtByLast(L, R) = 1
 #[apply(lazy)]
 pub type _Lt<L, R> = If<
     R,
