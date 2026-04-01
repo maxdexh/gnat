@@ -101,47 +101,46 @@ macro_rules! lit {
 ///
 /// # Examples
 /// ```
-/// macro_rules! chk_same {
-///     ($l:ty, $r:ty $(,)?) => { if false { let _: $l = panic!() as $r; } };
-/// }
-///
+/// # macro_rules! chk_same_type {
+/// #     ($l:ty, $r:ty $(,)?) => { let _: $l = panic!() as $r; };
+/// # }
 /// fn with_exprs<A: gnat::NatExpr, B: gnat::NatExpr>() {
 ///     // Unsuffixed literals are translated to `Nat`s
-///     chk_same!(
+///     chk_same_type!(
 ///         gnat::expr! { 2 },
 ///         gnat::lit!(2),
 ///     );
 ///     // Most operators map to their correspondingly named operation
-///     chk_same!(
+///     chk_same_type!(
 ///         gnat::expr! { A + B },
 ///         gnat::expr::Add<A, B>,
 ///     );
-///     chk_same!(
+///     chk_same_type!(
 ///         gnat::expr! { A == B },
 ///         gnat::expr::Eq<A, B>,
 ///     );
 ///     // Subtraction is saturating
-///     chk_same!(
+///     chk_same_type!(
 ///         gnat::expr! { A - B },
 ///         gnat::expr::SatSub<A, B>,
 ///     );
 ///     // `!` uses logical negation
-///     chk_same!(
+///     chk_same_type!(
 ///         gnat::expr! { !A },
 ///         gnat::expr::IsZero<A>,
 ///     );
 ///     // Function calls translate to type paths
-///     chk_same!(
+///     chk_same_type!(
 ///         gnat::expr! { gnat::expr::AbsDiff(A, B) },
 ///         gnat::expr::AbsDiff<A, B>,
 ///     );
 ///     // Expression paths also translate to type paths
-///     chk_same!(
+///     chk_same_type!(
 ///         gnat::expr! { gnat::expr::AbsDiff::<A, B> },
 ///         gnat::expr::AbsDiff<A, B>,
 ///     );
 ///     // Conditionals are also supported
-///     chk_same!(
+///     chk_same_type!(
 ///         gnat::expr! { if A { B } else { 2 * B } },
 ///         gnat::expr::If<
 ///             A,
