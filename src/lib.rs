@@ -157,7 +157,17 @@ macro_rules! expr {
     { $($t:tt)* } => { $crate::__mac::proc::expr!($($t)*) };
 }
 
-/// Same as [`expr!`] wrapped in [`Eval`].
+/// Same as [`expr!`] wrapped in [`Eval`]. Useful for use with [`mod@array`].
+///
+/// # Examples
+/// The [`mod@array`] uses [`Nat`] instead of [`NatExpr`] (for better type inference), so
+/// this is more convenient than [`expr!`]+[`Eval`]:
+/// ```
+/// use gnat::{Nat, array::*};
+/// fn concat<T, M: Nat, N: Nat>(a: Arr<T, M>, b: Arr<T, N>) -> Arr<T, gnat::eval! { M + N }> {
+///     a.concat(b).retype()
+/// }
+/// ```
 #[macro_export]
 #[cfg(feature = "macros")]
 macro_rules! eval {
@@ -176,7 +186,23 @@ macro_rules! eval {
 ///         1
 ///     }
 /// };
-/// assert_eq!(gnat::to_u128::<Factorial<gnat::lit!(5)>>(), Some(120));
+/// assert_eq!(
+///     gnat::to_u128::<Factorial<gnat::lit!(5)>>(),
+///     Some(120),
+/// );
+/// ```
+/// Equivalent code without this attribute:
+/// ```
+/// struct Factorial<N>(N);
+/// impl<N: gnat::NatExpr> gnat::NatExpr for Factorial<N> {
+///     type Eval = gnat::eval! {
+///         if N {
+///             Factorial(gnat::Eval(N - 1)) * N
+///         } else {
+///             1
+///         }
+///     };
+/// }
 /// ```
 #[cfg(feature = "macros")]
 pub use gnat_proc::nat_expr;

@@ -8,12 +8,12 @@ use crate::{Nat, NatExpr};
 
 /// Holds a const [`u128`]
 ///
-/// Implements [`NatExpr`] for [`small`](crate::small) values.
+/// Implements [`NatExpr`] for small values.
 pub struct U128<const N: u128>;
 
 /// Holds a const [`usize`]
 ///
-/// Implements [`NatExpr`] for [`small`](crate::small) values.
+/// Implements [`NatExpr`] for small values.
 pub struct Usize<const N: usize>;
 
 /// Holds a const [`bool`]

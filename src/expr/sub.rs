@@ -69,6 +69,7 @@ pub type _SatSub<L, R> = If<
 >;
 
 /// Type-level [`saturating_sub`](u128::saturating_sub)
+#[doc(alias = "-")]
 #[apply(opaque)]
 #[apply(test_op! test_sat_sub, L.saturating_sub(R))]
 pub type SatSub<L, R> = _SatSub;

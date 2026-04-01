@@ -38,6 +38,7 @@ pub fn nat_expr(attr: TokenStream, input: TokenStream) -> syn::Result<TokenStrea
             syn::GenericParam::Type(param) => param.ident.to_tokens(&mut struct_args),
             syn::GenericParam::Const(param) => param.ident.to_tokens(&mut struct_args),
         }
+        <syn::Token![,]>::default().to_tokens(&mut struct_args);
     }
 
     let expr_impl = quote::quote! {

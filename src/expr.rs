@@ -9,13 +9,12 @@
 //! which means it is possible to do recursion with it.
 //!
 //! All operations in this module are lazy. In order to get a [`Nat`] from them, e.g. for use
-//! with [arrays](crate::array), use [`crate::Eval`] to evaluate them.
+//! with [arrays](crate::array), use [`crate::Eval`] or [`crate::eval!`] to evaluate them.
 //!
 //! # Primitive operations
-//! Operations that are implemented through a dedicated associated type are called primitive.
+//! Operations that are implemented through an (internal) associated type on [`Nat`] are called primitive.
 //!
-//! Currently, there are the following primitive operations.
-//! They are implemented using associated types of [`Nat`] that are not public API.
+//! All operations in this module are implemented on top of the following primitive operations:
 //! - [`PopBit<N>`] removes the last bit of [`N::Eval`](NatExpr).
 //!     - Evaluates like `N.eval() / 2`
 //! - [`LastBit<N>`] gets the last bit of [`N::Eval`](NatExpr).
@@ -26,120 +25,80 @@
 //!   to [`F::Eval`](NatExpr). Only the necessary [`NatExpr::Eval`] projection is performed.
 //!     - Evaluates like `if C != 0 { T.eval() } else { F.eval() }`
 //!
-//! These primitives, together with [`NatExpr`] implementations based on them (and [`crate::Eval`]),
-//! are sufficient for a [Turing-complete](https://en.wikipedia.org/wiki/Turing_completeness)
-//! system, and all other operations in this module are just implemented on top of them.
-//!
-//! Any computable function on the natural numbers can be implemented. See the following sections.
+//! These primitives, together with recursive [`NatExpr`] implementations,
+//! form a [Turing-complete](https://en.wikipedia.org/wiki/Turing_completeness) system.
+//! Any computable function on the natural numbers can be implemented.
 //!
 //! # Recursion
 //! The way to implement an operation where the output requires looking at the entire number is to
-//! do it recursively. However, regular type aliases do not support recursion, see error E0391
-//! "cycle detected when expanding type alias".
+//! do it recursively. Regular type aliases do not support recursion since they are eagerly
+//! expanded (see error E0391 "cycle detected when expanding type alias").
 //!
 //! Instead, one has to go through [`NatExpr`] to make the operation lazy and use [`If`] to exit the
-//! recursion. For example, consider the following implementation of [`BitAnd`]:
+//! recursion. For example, consider this implementation of [`BitAnd`]:
 //! ```
 //! use gnat::{NatExpr, expr::*};
-//! pub struct MyBitAnd<L, R>(L, R);
-//! impl<L: NatExpr, R: NatExpr> NatExpr for MyBitAnd<L, R> {
-//!     type Eval = gnat::Eval<If<
-//!         L,
-//!         // take the bitand of the previous bits and append the and of the last bit
-//!         PushBit<
-//!             MyBitAnd<
-//!                 gnat::Eval<PopBit<L>>,
-//!                 gnat::Eval<PopBit<R>>,
-//!             >,
-//!             If<LastBit<L>, LastBit<R>, gnat::lit!(0)>, // boolean AND
-//!         >,
-//!         gnat::lit!(0), // 0 & R = 0, exit from the recursion
-//!     >>;
-//! }
-//! fn check_input<L: NatExpr, R: NatExpr>() {
-//!     assert_eq!( // works fully generically!
-//!         gnat::to_u128::<MyBitAnd<L, R>>().unwrap(),
-//!         gnat::to_u128::<L>().unwrap() & gnat::to_u128::<R>().unwrap(),
-//!     )
-//! }
-//! check_input::<gnat::lit!(3), gnat::lit!(5)>();
-//! check_input::<gnat::lit!(59), gnat::lit!(122)>();
-//! check_input::<gnat::lit!(0b10101000110111111), gnat::lit!(0b11110111011111)>()
+//!
+//! #[gnat::nat_expr]
+//! type MyBitAnd<L: NatExpr, R: NatExpr> = gnat::expr! {
+//!     if L {
+//!         PushBit(
+//!             // recurse on the tails and append the head
+//!             MyBitAnd(
+//!                 gnat::Eval(PopBit(R)),
+//!                 gnat::Eval(PopBit(L)),
+//!             ),
+//!             if LastBit(L) { LastBit(R) } else { 0 }, // logical AND
+//!         )
+//!     } else {
+//!         0 // base case, 0 & R = 0
+//!     }
+//! };
 //! ```
 //! Because `MyBitAnd` and [`PushBit`] are lazy and [`If`] only accesses
-//! [`NatExpr::Eval`] on the required branch, this will exit when `L` becomes
-//! 0, without getting stuck in an infinite loop.
+//! [`NatExpr::Eval`] in the required branch, this will exit when `L = 0`,
+//! without getting stuck in an infinite loop.
 //!
-//! Note here that we apply [`crate::Eval`] to [`PopBit`]. This is not strictly
+//! Note the application of [`crate::Eval`] to [`PopBit`]. This is not strictly
 //! necessary, but without it, the input to `MyBitAnd` becomes more deeply nested
 //! on each recursive evaluation (`PopBit<PopBit<...>>`), which causes `MyBitAnd`
 //! to take longer to compute (longer compile times). Evaluating in each step causes
 //! the level of nesting to decrease, since the number becomes smaller.
 //!
-//! #### Evaluating recursive arguments
-//! Because [`PopBit`] is itself lazy, the above definition of `MyBitAnd` will
-//! result in the arguments to `MyBitAnd` accumulating `PopBit<PopBit<...>>`
-//! for every recusive step. This can be fixed by applying [`crate::Eval`] to
-//! the recursive arguments; e.g. in the example above, it is preferrable to
-//! use `MyBitAnd<gnat::Eval<PopBit<L>>, gnat::Eval<PopBit<R>>>`.
-//!
-//! This is almost always beneficial for compile times.
+//! Similarly, switching the order of `R` and `L` on each recursion also terminates
+//! faster (for `R` much larger than `L`), at no extra cost.
 //!
 //! # Opaqueness
-//! Note: This section is only relevant if the operation in question is public API or when
-//! experiencing weird recursion limit errors from normalization of large inputs.
+//! There is another primitive operation, [`Opaque<P, Out>`].
+//! It is implemented to always return `Out::Eval`, but it still goes through a projection on `P::Eval`.
 //!
-//! The reason this is useful is that because types are heavily normalized
-//! by the compiler, it is easy to accidentally leak implementation details about
-//! them in a public API, which would make them impossible to normalize in the future,
-//! as someone could rely on them behaving a certain way in generic contexts.
-//! An example of this would be `LastBit<PushBit<N, B>> = B` where the arguments are generic.
+//! This means that something like `Eval<Opaque<A, Opaque<B, Func<A, B>>>>` will always be the same
+//! as `Eval<Func<A, B>>`, except that the compiler won't know this until it actually knows the
+//! value of both `A` and `B`. The benefits of this are:
+//! - If `Func` is recursive over only one of its arguments, then if we do something like
+//!   `Eval<Func<UsizeMax, B>>`, where `B` is a generic parameter, then the compiler will try to
+//!   normalize all the recursions away, since it knows how to evaluate `If<A, ...>`, since `A` is
+//!   known. This can cause unexpected "overflow while evaluating" errors.
 //!
-//! Furthermore, when using things like `crate::Eval<Min<UsizeMax, N>>` where `N` is generic,
-//! the compiler might try to normalize the entire recursive `Min` operation, which may cause
-//! spurious "overflow while ..." errors.
+//!   Wrapping `Func` in `Opaque` causes the evaluation to be deferred until both arguments are
+//!   known, which prevents this.
+//! - Making `Func` public API risks exposing implementation details due to type inferrence.
+//!   Wrapping a hidden [`NatExpr`] implementor in `Opaque` minimizes the amount of information
+//!   about the [`Nat`] that is returned, which means that the implementation can be changed after
+//!   the fact.
 //!
-//! These things can be guarded against using [`Opaque`]. `Opaque<P, Out>` always evaluates
-//! to `Out`, but only after projecting through an internal associated type of `P`, like
-//!`<P as Nat>::_Opaque<Out>`.
-//!
-//! This means that the compiler can only determine the value of [`Opaque<P, Out>`]
-//! after it has determined the value of `P`, and it cannot do any normalization
-//! specific to the implementation of `Out::Eval` before that.
-//!
-//! The way to use this when implementing a public operation `Op<A, B>` is as follows:
-//! - The actual implementation is moved to a seperate lazy operation `OpImpl<A, B>`. Recursive
-//!   evaluations use `OpImpl` rather than `Op`.
-//! - `Op` should be a lazy operation that evaluates to `crate::Eval<Opaque<A, Opaque<B, OpImpl<A, B>>>>`
-//!
-//! # Complete example implementation of [`BitAnd`]
+//! In the example from before, the following is an almost exact reimplementation of [`BitAnd`]:
 //! ```
-//! use gnat::{NatExpr, expr::*};
-//! pub struct _MyBitAnd<L, R>(L, R); // hide this in a private module
-//! impl<L: NatExpr, R: NatExpr> NatExpr for _MyBitAnd<L, R> {
-//!     type Eval = gnat::Eval<If<
-//!         L,
-//!         // take the bitand of the previous bits and append the and of the last bit
-//!         PushBit<
-//!             _MyBitAnd<
-//!                 gnat::Eval<PopBit<L>>,
-//!                 gnat::Eval<PopBit<R>>,
-//!             >,
-//!             If<LastBit<L>, LastBit<R>, gnat::lit!(0)>, // boolean AND
-//!         >,
-//!         gnat::lit!(0), // 0 & R = 0
-//!     >>;
-//! }
-//! pub type MyBitAnd<L, R> = Opaque<L, Opaque<R, _MyBitAnd<L, R>>>;
-//! fn check_input<L: NatExpr, R: NatExpr>() {
-//!     assert_eq!( // works fully generically!
-//!         gnat::to_u128::<MyBitAnd<L, R>>().unwrap(),
-//!         gnat::to_u128::<L>().unwrap() & gnat::to_u128::<R>().unwrap(),
-//!     )
-//! }
-//! check_input::<gnat::lit!(3), gnat::lit!(5)>();
-//! check_input::<gnat::lit!(59), gnat::lit!(122)>();
-//! check_input::<gnat::lit!(0b10101000110111111), gnat::lit!(0b11110111011111)>()
+//! # use gnat::expr::BitAnd as MyBitAnd;
+//! use gnat::expr::Opaque;
+//! #[gnat::nat_expr]
+//! type MyBitAndFinal<L: gnat::NatExpr, R: gnat::NatExpr> = Opaque<
+//!     L,
+//!     Opaque<
+//!         R,
+//!         MyBitAnd<L, R>,
+//!     >,
+//! >;
 //! ```
 
 #[expect(unused_imports)] // for docs
