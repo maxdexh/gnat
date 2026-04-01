@@ -22,19 +22,18 @@ fn test_satdec() {
     tests! { 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 }
 }
 
-const MORE_TESTS: bool = option_env!("more_nat_tests").is_some();
-const SKIP_TESTS: bool = option_env!("skip_nat_tests").is_some();
-pub(crate) type DefaultHi = crate::Eval<
-    expr::If<
-        crate::consts::Bool<SKIP_TESTS>,
-        N0,
-        expr::If<
-            crate::consts::Bool<MORE_TESTS>, //
-            crate::lit!(50),
-            crate::lit!(10),
-        >,
-    >,
->;
+const TEST_COUNT: u128 = if cfg!(test) {
+    match option_env!("GNAT_TEST_COUNT") {
+        Some(val) => match u128::from_str_radix(val, 10) {
+            Ok(count) => count,
+            Err(_) => panic!("Invalid test count"),
+        },
+        None => 10,
+    }
+} else {
+    0
+};
+pub(crate) type DefaultHi = crate::Eval<crate::consts::U128<TEST_COUNT>>;
 pub(crate) type DefaultLo = crate::small::N0;
 
 /// A type-level linked list of `Nat`s
@@ -82,7 +81,7 @@ pub(crate) fn run_tests<T: Tests>() {
         <T::RangesLo as NatList>::ReduceTestsArgs::<T>::run_tests_on::<()>
     }
     let dispatch = const {
-        if SKIP_TESTS {
+        if TEST_COUNT == 0 {
             None
         } else {
             Some(get_dispatch::<T>())
