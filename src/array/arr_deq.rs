@@ -244,14 +244,14 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use gnat::{array::*, small::*};
+    /// use gnat::array::*;
     ///
     /// assert_eq!(
     ///     ArrDeqApi::<[i32; 20]>::new().pop_front(),
     ///     None
     /// );
     /// assert_eq!(
-    ///     ArrDeqApi::new_full(Arr::<_, N20>::from_fn(|i| i)).pop_front(),
+    ///     ArrDeqApi::new_full(Arr::<_, gnat::lit!(20)>::from_fn(|i| i)).pop_front(),
     ///     Some(0)
     /// );
     /// ```
@@ -283,14 +283,14 @@ impl<A: Array<Item = T>, T> ArrDeqApi<A> {
     ///
     /// # Examples
     /// ```
-    /// use gnat::{array::*, small::*};
+    /// use gnat::array::*;
     ///
     /// assert_eq!(
     ///     ArrDeqApi::<[i32; 20]>::new().pop_back(),
     ///     None
     /// );
     /// assert_eq!(
-    ///     ArrDeqApi::new_full(Arr::<_, N20>::from_fn(|i| i)).pop_back(),
+    ///     ArrDeqApi::new_full(Arr::<_, gnat::lit!(20)>::from_fn(|i| i)).pop_back(),
     ///     Some(19)
     /// );
     /// ```

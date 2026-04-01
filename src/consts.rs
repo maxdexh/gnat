@@ -2,9 +2,9 @@
 //!
 //! Note that some types in this module require a high recursion limit.
 
+use crate::expr;
 #[allow(unused_imports)] // for docs
 use crate::{Nat, NatExpr};
-use crate::{expr, small::*};
 
 /// Holds a const [`u128`]
 ///
@@ -21,17 +21,17 @@ pub struct Usize<const N: usize>;
 /// Implements [`NatExpr`], using seperate impls for `true` and `false`.
 pub struct Bool<const B: bool>;
 impl NatExpr for Bool<true> {
-    type Eval = N1;
+    type Eval = crate::lit!(1);
 }
 impl NatExpr for Bool<false> {
-    type Eval = N0;
+    type Eval = crate::lit!(0);
 }
 
 /// [`usize::BITS`] as a [`Nat`]
 pub type PtrBits = crate::Eval<expr::Shl<Usize<{ size_of::<usize>() }>, crate::lit!(3)>>;
 
 /// [`usize::MAX`] as a [`Nat`]
-pub type UsizeMax = crate::Eval<expr::SatSub<expr::Shl<N1, PtrBits>, N1>>;
+pub type UsizeMax = crate::Eval<expr::SatSub<expr::Shl<crate::lit!(1), PtrBits>, crate::lit!(1)>>;
 
 /// [`isize::MAX`] as a [`Nat`]
 pub type IsizeMax = crate::Eval<expr::PopBit<UsizeMax>>;
@@ -51,7 +51,7 @@ macro_rules! gen_maxes {
             #[doc = concat!("[`", stringify!($prim), "::MAX`] as a [`Nat`]")]
             pub type $name = crate::Eval<
                 crate::expr::_DecUnchecked<
-                    crate::expr::Shl<N1, $bits>
+                    crate::expr::Shl<crate::lit!(1), $bits>
                 >
             >;
         )*
@@ -76,3 +76,28 @@ gen_maxes![
     [I128Max, crate::lit!(127), i128],
     [U128Max, crate::lit!(128), u128],
 ];
+
+macro_rules! new_alias {
+    ($name:ident, $val:literal, $ty:ty) => {
+        #[doc = core::concat!("`", $val, "` as a [`Nat`](crate::Nat)")]
+        type $name = $ty;
+        #[diagnostic::do_not_recommend]
+        impl crate::NatExpr for crate::consts::U128<$val> {
+            type Eval = $name;
+        }
+        #[diagnostic::do_not_recommend]
+        impl crate::NatExpr for crate::consts::Usize<$val> {
+            type Eval = $name;
+        }
+    };
+}
+
+new_alias!(N0, 0, crate::uimpl::_0);
+new_alias!(N1, 1, crate::uimpl::_1);
+
+macro_rules! bisect {
+    ($name:ident, $val:expr, $half:ty, $parity:ty) => {
+        new_alias! { $name, $val, crate::uimpl::_U<$half, $parity> }
+    };
+}
+include!(concat!(env!("OUT_DIR"), "/consts.rs"));

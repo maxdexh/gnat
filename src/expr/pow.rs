@@ -1,7 +1,7 @@
 use super::*;
 
 // Quad(N) := 4 * N
-type _Quad<N> = PushBit<PushBit<N, N0>, N0>;
+type _Quad<N> = PushBit<PushBit<N, crate::lit!(0)>, crate::lit!(0)>;
 
 // Square(N) := Pow(N, 2) = N * N
 //
@@ -17,12 +17,12 @@ pub type _Square<N> = If<
         _Add<
             _Quad<_Square<_H<N>>>,
             _Quad<_H<N>>,
-            N1, // Use internal carry arg for +1
+            crate::lit!(1), // Use internal carry arg for +1
         >,
         _Quad<_Square<_H<N>>>,
     >,
     // 0 * 0 = 0
-    N0,
+    crate::lit!(0),
 >;
 
 // MulIf(N, F, C) := if C { N * F } else { N }
@@ -47,7 +47,7 @@ pub type _Pow<B, E> = If<
         _P<E>,
     >,
     // Pow(B, 0) = 1 (including when B = 0)
-    N1,
+    crate::lit!(1),
 >;
 
 /// Type-level [`pow`](usize::pow)

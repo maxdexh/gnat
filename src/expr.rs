@@ -40,7 +40,7 @@
 //! Instead, one has to go through [`NatExpr`] to make the operation lazy and use [`If`] to exit the
 //! recursion. For example, consider the following implementation of [`BitAnd`]:
 //! ```
-//! use gnat::{NatExpr, small::*, expr::*};
+//! use gnat::{NatExpr, expr::*};
 //! pub struct MyBitAnd<L, R>(L, R);
 //! impl<L: NatExpr, R: NatExpr> NatExpr for MyBitAnd<L, R> {
 //!     type Eval = gnat::Eval<If<
@@ -51,9 +51,9 @@
 //!                 gnat::Eval<PopBit<L>>,
 //!                 gnat::Eval<PopBit<R>>,
 //!             >,
-//!             If<LastBit<L>, LastBit<R>, N0>, // boolean AND
+//!             If<LastBit<L>, LastBit<R>, gnat::lit!(0)>, // boolean AND
 //!         >,
-//!         N0, // 0 & R = 0, exit from the recursion
+//!         gnat::lit!(0), // 0 & R = 0, exit from the recursion
 //!     >>;
 //! }
 //! fn check_input<L: NatExpr, R: NatExpr>() {
@@ -62,8 +62,8 @@
 //!         gnat::to_u128::<L>().unwrap() & gnat::to_u128::<R>().unwrap(),
 //!     )
 //! }
-//! check_input::<N3, N5>();
-//! check_input::<N59, N122>();
+//! check_input::<gnat::lit!(3), gnat::lit!(5)>();
+//! check_input::<gnat::lit!(59), gnat::lit!(122)>();
 //! check_input::<gnat::lit!(0b10101000110111111), gnat::lit!(0b11110111011111)>()
 //! ```
 //! Because `MyBitAnd` and [`PushBit`] are lazy and [`If`] only accesses
@@ -114,7 +114,7 @@
 //!
 //! # Complete example implementation of [`BitAnd`]
 //! ```
-//! use gnat::{NatExpr, small::*, expr::*};
+//! use gnat::{NatExpr, expr::*};
 //! pub struct _MyBitAnd<L, R>(L, R); // hide this in a private module
 //! impl<L: NatExpr, R: NatExpr> NatExpr for _MyBitAnd<L, R> {
 //!     type Eval = gnat::Eval<If<
@@ -125,9 +125,9 @@
 //!                 gnat::Eval<PopBit<L>>,
 //!                 gnat::Eval<PopBit<R>>,
 //!             >,
-//!             If<LastBit<L>, LastBit<R>, N0>, // boolean AND
+//!             If<LastBit<L>, LastBit<R>, gnat::lit!(0)>, // boolean AND
 //!         >,
-//!         N0, // 0 & R = 0
+//!         gnat::lit!(0), // 0 & R = 0
 //!     >>;
 //! }
 //! pub type MyBitAnd<L, R> = Opaque<L, Opaque<R, _MyBitAnd<L, R>>>;
@@ -137,14 +137,14 @@
 //!         gnat::to_u128::<L>().unwrap() & gnat::to_u128::<R>().unwrap(),
 //!     )
 //! }
-//! check_input::<N3, N5>();
-//! check_input::<N59, N122>();
+//! check_input::<gnat::lit!(3), gnat::lit!(5)>();
+//! check_input::<gnat::lit!(59), gnat::lit!(122)>();
 //! check_input::<gnat::lit!(0b10101000110111111), gnat::lit!(0b11110111011111)>()
 //! ```
 
 #[expect(unused_imports)] // for docs
 use crate::{Nat, NatExpr};
-use crate::{internals::InternalOp, small::*, utils::apply};
+use crate::{internals::InternalOp, utils::apply};
 
 /// Input format:
 /// ```compile_fail
@@ -240,15 +240,15 @@ macro_rules! op_examples {
         $(, ($farg:literal $(, $arg:literal)* $(,)?) == $res:literal )* $(,)?
     ) => {
         core::concat!(
-            "```\nuse gnat::{expr, small::*};\n# macro_rules! assert_nat_eq { ($nat:ty, $val:expr) => { assert_eq!(gnat::to_u128::<$nat>(), Some($val)) } }\n",
+            "```\nuse gnat::expr;\n# macro_rules! assert_nat_eq { ($nat:ty, $val:expr) => { assert_eq!(gnat::to_u128::<$nat>(), Some($val)) } }\n",
             $(
                 core::concat!(
                     "assert_nat_eq!(expr::",
                     core::stringify!($opname),
-                    "<N",
+                    "<gnat::lit!(",
                     $farg,
-                    $(", N", $arg,)*
-                    ">, ",
+                    $("), gnat::lit!(", $arg,)*
+                    ")>, ",
                     $res,
                     ");\n",
                 ),

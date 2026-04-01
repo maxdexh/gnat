@@ -87,8 +87,8 @@ where
     ///
     /// # Examples
     /// ```
-    /// use gnat::{array::*, small::*};
-    /// let arr = Arr::<_, N4>::from_fn(|i| i * i);
+    /// use gnat::array::*;
+    /// let arr = Arr::<_, gnat::lit!(4)>::from_fn(|i| i * i);
     /// assert_eq!(arr, [0, 1, 4, 9]);
     /// ```
     #[track_caller]
@@ -109,8 +109,8 @@ where
     /// # Examples
     /// Retyping [`Arr`] to [`CopyArr`]:
     /// ```
-    /// use gnat::{array::*, small::*};
-    /// let arr = Arr::<_, N5>::from_fn(|i| i * i);
+    /// use gnat::array::*;
+    /// let arr = Arr::<_, gnat::lit!(5)>::from_fn(|i| i * i);
     /// let converted: CopyArr<_, _> = arr.retype();
     /// let converted_copy = converted;
     /// assert_eq!(converted, converted_copy);

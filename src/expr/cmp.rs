@@ -15,7 +15,7 @@ pub type _Eq<L, R> = If<
     If<
         _Xnor<_P<L>, _P<R>>,
         _Eq<_H<R>, _H<L>>, // X == Y iff Y == X
-        N0,
+        crate::lit!(0),
     >,
     // 0 == R
     IsZero<R>,
@@ -41,7 +41,7 @@ pub type Ne<L, R> = _Ne;
 
 /// LtByLast(L, R) := (H(L) == H(R) and P(L) == 0 and P(R) == 1)
 type _LtByLast<L, R> = _And<
-    If<_P<L>, N0, _P<R>>, //
+    If<_P<L>, crate::lit!(0), _P<R>>, //
     _Eq<_H<L>, _H<R>>,
 >;
 
@@ -60,12 +60,12 @@ pub type _Lt<L, R> = If<
         L,
         If<
             _Lt<_H<L>, _H<R>>, //
-            N1,
+            crate::lit!(1),
             _LtByLast<L, R>,
         >,
-        N1, // 0 < R is true since L != 0
+        crate::lit!(1), // 0 < R is true since L != 0
     >,
-    N0, // L < 0 is false
+    crate::lit!(0), // L < 0 is false
 >;
 
 /// Type-level [`<`](core::cmp::PartialOrd)

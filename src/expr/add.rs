@@ -11,8 +11,8 @@ use super::*;
 #[apply(lazy)]
 pub type _Inc<N> = If<
     _P<N>, //
-    PushBit<_Inc<_H<N>>, N0>,
-    PushBit<_H<N>, N1>,
+    PushBit<_Inc<_H<N>>, crate::lit!(0)>,
+    PushBit<_H<N>, crate::lit!(1)>,
 >;
 
 pub(crate) type _PlusBit<N, C> = If<C, _Inc<N>, N>;
@@ -32,7 +32,7 @@ pub(crate) type _PlusBit<N, C> = If<C, _Inc<N>, N>;
 // = 2 * (LH + RH + X / 2) + X % 2
 // = Append(LH + RH + X / 2, X % 2)
 #[apply(lazy)]
-pub type _Add<L, R, C = N0> = If<
+pub type _Add<L, R, C = crate::lit!(0)> = If<
     L,
     PushBit<
         // LH + RH + X / 2

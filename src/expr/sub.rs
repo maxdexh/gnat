@@ -26,7 +26,7 @@ use super::*;
 // = 2 * (HL - HR - CC) + X % 2
 // = Append(SubUnchecked(HL, HR, CC), X % 2)
 #[apply(lazy)]
-pub type _SubUnchecked<L, R, C = N0> = If<
+pub type _SubUnchecked<L, R, C = crate::lit!(0)> = If<
     R,
     PushBit<
         _SubUnchecked<
@@ -65,7 +65,7 @@ pub type AbsDiff<L, R> = _AbsDiff;
 pub type _SatSub<L, R> = If<
     _Lt<R, L>, //
     _SubUnchecked<L, R>,
-    N0,
+    crate::lit!(0),
 >;
 
 /// Type-level [`saturating_sub`](u128::saturating_sub)

@@ -5,7 +5,7 @@ use super::*;
 type _AddIf<C, L, R> = If<C, add::_Add<L, R>, L>;
 
 // Double(N) := 2 * N
-type _Double<N> = PushBit<N, N0>;
+type _Double<N> = PushBit<N, crate::lit!(0)>;
 
 // Mul(L, R) := L * R
 //
@@ -24,7 +24,7 @@ pub type _Mul<L, R> = If<
         R,
     >,
     // 0 * R = 0
-    N0,
+    crate::lit!(0),
 >;
 
 /// Type-level [`*`](core::ops::Mul)

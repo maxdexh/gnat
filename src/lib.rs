@@ -35,7 +35,6 @@ pub mod array;
 pub mod condty;
 pub mod consts;
 pub mod expr;
-pub mod small;
 
 mod nat_api;
 pub use nat_api::*;
@@ -56,7 +55,7 @@ pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 /// Trait for deferred [`Nat`] expressions.
 ///
 /// This is not only a conversion trait, but forms an important part in how most operations are
-/// implemented. See the [`expr`] module.
+/// implemented. See the [`mod@expr`] module.
 #[diagnostic::on_unimplemented(
     message = "Cannot convert `{Self}` to a `Nat`",
     label = "To be used like a `Nat`, `{Self}` must implement `NatExpr`"
@@ -82,12 +81,18 @@ pub trait NatExpr {
 /// ```
 #[macro_export]
 macro_rules! lit {
+    (0) => {
+        $crate::__mac::lit::_0
+    };
+    (1) => {
+        $crate::__mac::lit::_1
+    };
     ($l:literal) => {
         $crate::__mac::proc::__lit! {
             ($l)
             ($crate::__mac::lit::_DirectAppend)
-            ($crate::small::N0)
-            ($crate::small::N1)
+            ($crate::__mac::lit::_0)
+            ($crate::__mac::lit::_1)
         }
     };
 }
@@ -171,7 +176,7 @@ macro_rules! eval {
 ///         1
 ///     }
 /// };
-/// assert_eq!(gnat::to_u128::<gnat::expr! { Factorial(5) }>(), Some(120));
+/// assert_eq!(gnat::to_u128::<Factorial<gnat::lit!(5)>>(), Some(120));
 /// ```
 #[cfg(feature = "macros")]
 pub use gnat_proc::nat_expr;

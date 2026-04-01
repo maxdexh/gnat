@@ -90,14 +90,18 @@ fn opaqueness_tests() {
     }
     fn accept<A: NatExpr, B: NatExpr>() {
         // types that are provably the same
-        check_proven_identical!(true, crate::Eval<If<N1, A, B>>, crate::Eval<A>);
-        check_proven_identical!(true, crate::Eval<If<N0, A, B>>, crate::Eval<B>);
-        check_proven_identical!(true, crate::Eval<Opaque<N0, A>>, crate::Eval<A>);
+        check_proven_identical!(true, crate::Eval<If<crate::lit!(1), A, B>>, crate::Eval<A>);
+        check_proven_identical!(true, crate::Eval<If<crate::lit!(0), A, B>>, crate::Eval<B>);
+        check_proven_identical!(true, crate::Eval<Opaque<crate::lit!(0), A>>, crate::Eval<A>);
 
         // types that are not provably the same
         check_proven_identical!(false, crate::Eval<Opaque<B, A>>, crate::Eval<A>);
         check_proven_identical!(false, crate::Eval<Opaque<B, A>>, Opaque<A, A>);
-        check_proven_identical!(false, crate::Eval<PopBit<PushBit<N0, A>>>, N0);
+        check_proven_identical!(
+            false,
+            crate::Eval<PopBit<PushBit<crate::lit!(0), A>>>,
+            crate::lit!(0)
+        );
     }
     accept::<crate::lit!(3), crate::lit!(7)>();
 }

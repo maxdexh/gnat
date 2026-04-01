@@ -1,8 +1,8 @@
 #![cfg(test)]
 
-use crate::{Nat, expr, small::*};
+use crate::{Nat, expr};
 
-pub(crate) type SatDec<N> = crate::Eval<expr::If<N, expr::_DecUnchecked<N>, N0>>;
+pub(crate) type SatDec<N> = crate::Eval<expr::If<N, expr::_DecUnchecked<N>, crate::lit!(0)>>;
 
 /// The test runner for all operations uses [`SatDec`] to traverse a range of inputs.
 /// This test is there to ensure that it behaves correctly.
@@ -34,7 +34,7 @@ const TEST_COUNT: u128 = if cfg!(test) {
     0
 };
 pub(crate) type DefaultHi = crate::Eval<crate::consts::U128<TEST_COUNT>>;
-pub(crate) type DefaultLo = crate::small::N0;
+pub(crate) type DefaultLo = crate::lit!(0);
 
 /// A type-level linked list of `Nat`s
 pub(crate) trait NatList: Sized {
@@ -59,9 +59,9 @@ pub(crate) trait Tests: Sized {
 // so that we don't need to monomorphize infinitely many functions.
 impl NatList for () {
     const EMPTY: bool = true;
-    type First = N0;
+    type First = crate::lit!(0);
     type Tail = Self;
-    type Len = N0;
+    type Len = crate::lit!(0);
 
     type ReduceTestsArgs<T: Tests<RangesLo = Self>> = T;
 }

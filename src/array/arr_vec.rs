@@ -447,14 +447,14 @@ where
     ///
     /// # Examples
     /// ```
-    /// use gnat::{array::*, small::*};
+    /// use gnat::array::*;
     ///
     /// assert_eq!(
     ///     ArrVecApi::<[i32; 20]>::new().pop(),
     ///     None
     /// );
     /// assert_eq!(
-    ///     ArrVecApi::new_full(Arr::<_, N20>::from_fn(|i| i)).pop(),
+    ///     ArrVecApi::new_full(Arr::<_, gnat::lit!(20)>::from_fn(|i| i)).pop(),
     ///     Some(19)
     /// );
     /// ```

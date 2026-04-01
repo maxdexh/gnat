@@ -1,7 +1,7 @@
 use super::*;
 
-pub type _And<L, R> = If<L, R, N0>;
-pub type _Or<L, R> = If<L, N1, R>;
+pub type _And<L, R> = If<L, R, crate::lit!(0)>;
+pub type _Or<L, R> = If<L, crate::lit!(1), R>;
 pub type _Xor<L, R> = crate::Eval<If<L, IsZero<R>, R>>;
 pub type _Xnor<L, R> = crate::Eval<If<L, R, IsZero<R>>>;
 pub type _Xor3<A, B, C> = crate::Eval<If<A, _Xnor<B, C>, _Xor<B, C>>>;
@@ -26,6 +26,6 @@ pub type _P<N> = crate::Eval<LastBit<N>>;
 pub type _DecUnchecked<N> = If<
     //
     _P<N>,
-    PushBit<_H<N>, N0>,
-    PushBit<_DecUnchecked<_H<N>>, N1>,
+    PushBit<_H<N>, crate::lit!(0)>,
+    PushBit<_DecUnchecked<_H<N>>, crate::lit!(1)>,
 >;

@@ -10,7 +10,7 @@ pub type _LogUncheckedNormRec<B, N> = _LogUnchecked<
 pub type _LogUnchecked<B, N> = If<
     //
     _Lt<N, B>,
-    N0,
+    crate::lit!(0),
     _Inc<_LogUncheckedNormRec<B, N>>,
 >;
 #[apply(lazy)]
@@ -19,7 +19,7 @@ pub type _Log<B, N> = If<
     _And<_H<B>, N>,
     _LogUnchecked<B, N>,
     // Fallback value
-    N0,
+    crate::lit!(0),
 >;
 
 /// Type-level [`ilog`](u128::ilog)
@@ -57,10 +57,10 @@ pub type _BaseLen<B, N> = If<
         // If B > 1 and N > 0, length in base B is just ILog + 1
         _Inc<_LogUnchecked<B, N>>,
         // The length of 0 is 1
-        N1,
+        crate::lit!(1),
     >,
     // If B = 1 then return unary length, if B = 0 then return fallback
-    If<B, N, N0>,
+    If<B, N, crate::lit!(0)>,
 >;
 
 /// Calculates the length of a number in an arbitrary base.

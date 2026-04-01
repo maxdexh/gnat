@@ -16,7 +16,7 @@ pub type _NaiveRem<L, R> = If<
         _P<L>,
     >,
     // NaiveRem(0, R) = 2 * (0 % R) + 0 = 0
-    N0,
+    crate::lit!(0),
 >;
 
 // RemUnchecked(L, R) := L % R, where R > 0
@@ -58,7 +58,7 @@ pub type _DivUnchecked<L, R> = If<
         IsZero<_Lt<_NaiveRem<L, R>, R>>,
     >,
     // 0 / R = 0
-    N0,
+    crate::lit!(0),
 >;
 
 #[apply(lazy)]
@@ -101,7 +101,7 @@ pub type _Div<L, R> = If<
     R,
     _DivUnchecked<L, R>,
     // Division by zero is defined as zero
-    N0,
+    crate::lit!(0),
 >;
 
 /// Type-level [`/`](std::ops::Div)

@@ -19,7 +19,7 @@ pub type _BitAnd<L, R> = If<
         _And<_P<L>, _P<R>>,
     >,
     // 0 & R = 0
-    N0,
+    crate::lit!(0),
 >;
 
 /// Type-level [`&`](https://en.wikipedia.org/wiki/Bitwise_operation#AND)
