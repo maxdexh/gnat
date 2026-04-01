@@ -146,21 +146,6 @@
 use crate::{Nat, NatExpr};
 use crate::{internals::InternalOp, small::*, utils::apply};
 
-macro_rules! lazy_impl {
-    (
-        $(())?
-        type $Name:ident<$($P:ident $(= $_:ty)?),* $(,)?> = $Val:ty;
-    ) => {
-        // FIXME: Measure time impact of only requiring NatExpr for recursive ops
-        // that use Nat internally
-        impl<$($P: crate::NatExpr),*> crate::NatExpr for $Name<$($P),*> {
-            #[doc(hidden)]
-            type Eval = crate::Eval<$Val>;
-        }
-    };
-}
-pub(crate) use lazy_impl;
-
 /// Input format:
 /// ```compile_fail
 /// #[apply(lazy)]
@@ -183,8 +168,9 @@ macro_rules! lazy {
     ) => {
         $(#[$attr])*
         pub struct $Name<$($P $(= $Def)?),*>($($P),*);
-        crate::expr::lazy_impl! {
-            type $Name<$($P),*> = $Val;
+        impl<$($P: crate::NatExpr),*> crate::NatExpr for $Name<$($P),*> {
+            #[doc(hidden)]
+            type Eval = crate::Eval<$Val>;
         }
     };
 }

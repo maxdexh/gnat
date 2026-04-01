@@ -216,3 +216,18 @@ pub fn __lit(input: TokenStream) -> TokenStream {
         Err(out) => out,
     }
 }
+
+#[cfg(feature = "full")]
+mod full;
+macro_rules! export_full {
+    (#[$attr:meta] $name:ident($($arg:ident),*)) => {
+        #[doc(hidden)]
+        #[$attr]
+        #[cfg(feature = "full")]
+        pub fn $name($($arg: TokenStream),*) -> TokenStream {
+            full::$name($($arg.into()),*).unwrap_or_else(syn::Error::into_compile_error).into()
+        }
+    };
+}
+export_full! { #[proc_macro_attribute] nat_expr(attr, input) }
+export_full! { #[proc_macro] expr(input) }

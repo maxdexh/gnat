@@ -6,5 +6,11 @@ edition = "2024"
 [lib]
 proc-macro = true
 
+[features]
+full = ["dep:syn", "dep:proc-macro2", "dep:quote"]
+
 [dependencies]
 ibig = "0.3.6"
+quote = { version = "1.0.45", optional = true }
+syn = { version = "2.0.117", optional = true, features = ["full"] }
+proc-macro2 = { version = "1.0.106", optional = true }

@@ -15,6 +15,8 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+extern crate self as gnat;
+
 // Nat Implementation internals
 mod internals;
 mod uimpl;
@@ -89,3 +91,87 @@ macro_rules! lit {
         }
     };
 }
+
+/// Converts expression syntax into [`NatExpr`] type expressions.
+///
+/// # Examples
+/// ```
+/// macro_rules! chk_same {
+///     ($l:ty, $r:ty $(,)?) => { if false { let _: $l = panic!() as $r; } };
+/// }
+///
+/// fn with_exprs<A: gnat::NatExpr, B: gnat::NatExpr>() {
+///     // Unsuffixed literals are translated to `Nat`s
+///     chk_same!(
+///         gnat::expr! { 2 },
+///         gnat::lit!(2),
+///     );
+///     // Most operators map to their correspondingly named operation
+///     chk_same!(
+///         gnat::expr! { A + B },
+///         gnat::expr::Add<A, B>,
+///     );
+///     chk_same!(
+///         gnat::expr! { A == B },
+///         gnat::expr::Eq<A, B>,
+///     );
+///     // Subtraction is saturating
+///     chk_same!(
+///         gnat::expr! { A - B },
+///         gnat::expr::SatSub<A, B>,
+///     );
+///     // `!` uses logical negation
+///     chk_same!(
+///         gnat::expr! { !A },
+///         gnat::expr::IsZero<A>,
+///     );
+///     // Function calls translate to type paths
+///     chk_same!(
+///         gnat::expr! { gnat::expr::AbsDiff(A, B) },
+///         gnat::expr::AbsDiff<A, B>,
+///     );
+///     // Expression paths also translate to type paths
+///     chk_same!(
+///         gnat::expr! { gnat::expr::AbsDiff::<A, B> },
+///         gnat::expr::AbsDiff<A, B>,
+///     );
+///     // Conditionals are also supported
+///     chk_same!(
+///         gnat::expr! { if A { B } else { 2 * B } },
+///         gnat::expr::If<
+///             A,
+///             B,
+///             gnat::expr::Mul<gnat::lit!(2), B>,
+///         >,
+///     );
+/// }
+/// ```
+#[macro_export]
+#[cfg(feature = "macros")]
+macro_rules! expr {
+    { $($t:tt)* } => { $crate::__mac::proc::expr!($($t)*) };
+}
+
+/// Same as [`expr!`] wrapped in [`Eval`].
+#[macro_export]
+#[cfg(feature = "macros")]
+macro_rules! eval {
+    { $($t:tt)* } => { $crate::Eval<$crate::expr!($($t)*)> };
+}
+
+/// Converts type alias syntax into a [`NatExpr`] impl.
+///
+/// # Examples
+/// ```
+/// #[gnat::nat_expr]
+/// type Factorial<N: gnat::NatExpr> = gnat::expr! {
+///     if N {
+///         Factorial(gnat::Eval(N - 1)) * N
+///     } else {
+///         1
+///     }
+/// };
+/// assert_eq!(gnat::to_u128::<gnat::expr! { Factorial(5) }>(), Some(120));
+/// ```
+#[cfg(feature = "macros")]
+pub use gnat_proc::nat_expr;
