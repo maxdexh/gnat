@@ -171,7 +171,7 @@ impl<N: Nat> BigCounter<N> {
                 } else {
                     BigCounter::<PopDigit<N>>::max()
                         .digits
-                        .concat([crate::to_usize_overflowing::<N>().0])
+                        .concat_arr([crate::to_usize_overflowing::<N>().0])
                         .try_retype()
                         .unwrap()
                 },

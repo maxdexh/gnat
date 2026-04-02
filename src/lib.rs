@@ -1,4 +1,46 @@
-//! TODO: Docs go here
+//! This crate provides type-level natural numbers, similar to [`typenum`](https://docs.rs/typenum/latest/typenum/).
+//!
+//! A type-level number is a type that represents a number. The [`Nat`] trait takes the role of the
+//! "type-level number type", i.e. one accepts a type-level number using a generic parameter with
+//! bound [`Nat`].
+//!
+//! The use cases are the same as those of generic consts.
+//!
+//! `gnat` differs from `typenum` in that its [`Nat`] trait is not a marker trait, but defines
+//! enough (internal) structure to be able to define and use operations on it, generically.
+//!
+//! This crate is to the unstable `generic_const_expr` feature what `typenum` is to the already
+//! stable `min_const_generics` feature. For example, consider the case of concatenating arrays
+//! at compile time
+//! ```compile_fail
+//! // Ideal function, requires unstable feature
+//! const fn concat_arrays_gce<T, const M: usize, const N: usize>(a: [T; M], b: [T; N]) -> [T; M + N] {
+//!     todo!()
+//! }
+//!
+//! // typenum + generic-array implementation
+//! use generic_array::{GenericArray, ArrayLength};
+//! const fn concat_arrays_gar<T, M: ArrayLength, N: ArrayLength>(
+//!     a: GenericArray<T, M>,
+//!     b: GenericArray<T, N>,
+//! ) -> GenericArray<T, typenum::op!(M + N)>
+//! where // ArrayLength is not enough, we also need to add a bound for `+`
+//!     M: std::ops::Add<N, Output: ArrayLength>,
+//! {
+//!     todo!()
+//! }
+//!
+//! // gnat implementation
+//! use gnat::{Nat, array::Arr};
+//! const fn concat_arrays_nat<T, M: Nat, N: Nat>(a: Arr<T, M>, b: Arr<T, N>) -> Arr<T, gnat::eval!(M + N)> {
+//!     a.concat_arr(b).retype()
+//! }
+//! ```
+//! This also means that functions can recurse over type arguments without defining an extra helper
+//! trait for all the operations. Just having a [`Nat`] is always enough.
+//!
+//! It is also possible to implement custom operations without any extra bounds needed to use them.
+//! See the [`mod@expr`] module.
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(not(any(test, doc, feature = "std")), no_std)]
 #![cfg_attr(test, recursion_limit = "1024")]
@@ -162,7 +204,7 @@ macro_rules! expr {
 /// ```
 /// use gnat::{Nat, array::*};
 /// fn concat<T, M: Nat, N: Nat>(a: Arr<T, M>, b: Arr<T, N>) -> Arr<T, gnat::eval! { M + N }> {
-///     a.concat(b).retype()
+///     a.concat_arr(b).retype()
 /// }
 /// ```
 #[macro_export]

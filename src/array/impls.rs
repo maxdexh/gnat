@@ -148,7 +148,7 @@ where
     /// Concatenates the inner array with `rhs` via [`ArrConcat`].
     ///
     /// This method supports arrays with lengths exceeding [`usize::MAX`].
-    pub const fn concat<Rhs>(self, rhs: Rhs) -> ArrApi<ArrConcat<A, Rhs>>
+    pub const fn concat_arr<Rhs>(self, rhs: Rhs) -> ArrApi<ArrConcat<A, Rhs>>
     where
         Rhs: Array<Item = T>,
     {

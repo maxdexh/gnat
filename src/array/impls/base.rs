@@ -147,7 +147,7 @@ where
     ///         ArrApi::new(last_bit).try_retype().unwrap()
     ///     } else {
     ///         to_binary_arr::<gnat::Eval<expr::PopBit<N>>>()
-    ///             .concat(last_bit)
+    ///             .concat_arr(last_bit)
     ///             .try_retype()
     ///             .unwrap()
     ///     }
