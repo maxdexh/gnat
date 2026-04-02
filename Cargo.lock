@@ -41,7 +41,6 @@ dependencies = [
  "const-util",
  "generic-upper-bound",
  "gnat-proc",
- "type-const",
 ]
 
 [[package]]

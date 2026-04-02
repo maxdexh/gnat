@@ -35,7 +35,7 @@ pub const fn is_zero<N: NatExpr>() -> bool {
 pub const fn to_str<N: NatExpr>() -> &'static str {
     const fn to_byte_str_naive<N: Nat>() -> &'static [u8] {
         struct ConcatBytes<N>(N);
-        impl<N: Nat> type_const::Const for ConcatBytes<N> {
+        impl<N: Nat> const_util::Const for ConcatBytes<N> {
             type Type = &'static [&'static [u8]];
             const VALUE: Self::Type = &[
                 // Recursively append the last digit

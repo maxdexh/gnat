@@ -22,7 +22,6 @@ documentation.workspace = true
 
 [dependencies]
 const-util = "2.2.0"
-type-const = "1.1.1"
 gnat-proc = { path = "proc", version = "0.1.4" }
 
 [dev-dependencies]
