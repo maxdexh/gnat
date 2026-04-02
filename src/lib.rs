@@ -135,7 +135,7 @@ macro_rules! lit {
     ($l:literal) => {
         $crate::__mac::proc::__lit! {
             ($l)
-            ($crate::__mac::lit::_DirectAppend)
+            ($crate::__mac::lit::_U)
             ($crate::__mac::lit::_0)
             ($crate::__mac::lit::_1)
         }

@@ -28,12 +28,18 @@ impl NatExpr for Bool<false> {
 }
 
 /// [`usize::BITS`] as a [`Nat`]
+///
+/// Note that this type changes depending on the platform!
 pub type PtrBits = crate::Eval<expr::Shl<Usize<{ size_of::<usize>() }>, crate::lit!(3)>>;
 
 /// [`usize::MAX`] as a [`Nat`]
+///
+/// Note that this type changes depending on the platform!
 pub type UsizeMax = crate::Eval<expr::SatSub<expr::Shl<crate::lit!(1), PtrBits>, crate::lit!(1)>>;
 
 /// [`isize::MAX`] as a [`Nat`]
+///
+/// Note that this type changes depending on the platform!
 pub type IsizeMax = crate::Eval<expr::PopBit<UsizeMax>>;
 
 #[test]
