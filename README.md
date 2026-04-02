@@ -1,6 +1,6 @@
-[![Crates.io](https://img.shields.io/crates/v/generic-upper-bound.svg)](https://crates.io/crates/generic-upper-bound)
-[![Documentation](https://docs.rs/generic-upper-bound/badge.svg)](https://docs.rs/generic-upper-bound)
-[![Rust](https://img.shields.io/badge/rust-1.78.0%2B-blue.svg?maxAge=3600)](https://github.com/rust-lang/generic-upper-bound)
+[![Crates.io](https://img.shields.io/crates/v/gnat.svg)](https://crates.io/crates/gnat)
+[![Documentation](https://docs.rs/gnat/badge.svg)](https://docs.rs/gnat)
+[![Rust](https://img.shields.io/badge/rust-1.90.0%2B-blue.svg?maxAge=3600)](https://github.com/rust-lang/rust)
 
 <!-- cargo-reedme: start -->
 

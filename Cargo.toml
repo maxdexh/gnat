@@ -1,6 +1,6 @@
 [workspace]
 members = ["proc"]
-package.version = "0.1.2"
+package.version = "0.1.4"
 package.license = "MIT"
 package.authors = ["Max Dexheimer"]
 package.description = "Type-level numbers without extra bounds"
@@ -23,7 +23,7 @@ documentation.workspace = true
 [dependencies]
 const-util = "2.2.0"
 type-const = "1.1.1"
-gnat-proc = { path = "proc", version = "0.1.2" }
+gnat-proc = { path = "proc", version = "0.1.4" }
 
 [dev-dependencies]
 generic-upper-bound = "3.1.1"
