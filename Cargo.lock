@@ -46,7 +46,7 @@ dependencies = [
 
 [[package]]
 name = "gnat-proc"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "ibig",
  "proc-macro2",
