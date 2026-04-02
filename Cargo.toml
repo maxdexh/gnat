@@ -1,11 +1,12 @@
 [workspace]
 members = ["proc"]
-package.version = "0.1.0"
+package.version = "0.1.1"
 package.license = "MIT"
 package.authors = ["Max Dexheimer"]
 package.description = "Type-level numbers without extra bounds"
 package.rust-version = "1.90"
 package.edition = "2024"
+package.repository = "https://github.com/maxdexh/gnat"
 
 [package]
 name = "gnat"
@@ -15,11 +16,12 @@ authors.workspace = true
 description.workspace = true
 rust-version.workspace = true
 edition.workspace = true
+repository.workspace = true
 
 [dependencies]
 const-util = "2.2.0"
 type-const = "1.1.1"
-gnat-proc = { path = "proc" }
+gnat-proc = { path = "proc", version = "0.1.1" }
 
 [dev-dependencies]
 generic-upper-bound = "3.1.1"

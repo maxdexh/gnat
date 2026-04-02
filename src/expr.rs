@@ -153,8 +153,8 @@ macro_rules! VarOpaque {
 }
 pub(crate) use VarOpaque;
 
-/// Like [`lazy`], but wraps the result in [`VarOpaque`].
-/// For this, another [`lazy`] type `$LazyBase` is declared in the
+/// Like [`nat_expr`], but wraps the result in [`VarOpaque`].
+/// For this, another [`nat_expr`] type `$LazyBase` is declared in the
 /// module to holds the implementation to be wrapped by [`VarOpaque`].
 ///
 /// Recursive implementations should use that name when recursing,
