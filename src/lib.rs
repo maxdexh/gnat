@@ -12,12 +12,15 @@
 //! This crate is to the unstable `generic_const_expr` feature what `typenum` is to the already
 //! stable `min_const_generics` feature. For example, consider the case of concatenating arrays
 //! at compile time
-//! ```compile_fail
-//! // Ideal function, requires unstable feature
-//! const fn concat_arrays_gce<T, const M: usize, const N: usize>(a: [T; M], b: [T; N]) -> [T; M + N] {
+//! ```
+#![cfg_attr(doctest, doc = "```\n```compile_fail")]
+//! // Ideal function, requires #![feature(generic_const_expr)]
+//! const fn concat_arrays_gce<T, const M: usize, const N: usize>(
+//!     a: [T; M],
+//!     b: [T; N],
+//! ) -> [T; M + N] {
 //!     todo!()
 //! }
-//!
 //! // typenum + generic-array implementation
 //! use generic_array::{GenericArray, ArrayLength};
 //! const fn concat_arrays_gar<T, M: ArrayLength, N: ArrayLength>(
@@ -29,15 +32,17 @@
 //! {
 //!     todo!()
 //! }
-//!
+//! ```
+//! ```
 //! // gnat implementation
 //! use gnat::{Nat, array::Arr};
-//! const fn concat_arrays_nat<T, M: Nat, N: Nat>(a: Arr<T, M>, b: Arr<T, N>) -> Arr<T, gnat::eval!(M + N)> {
+//! const fn concat_arrays_nat<T, M: Nat, N: Nat>(
+//!     a: Arr<T, M>,
+//!     b: Arr<T, N>,
+//! ) -> Arr<T, gnat::eval!(M + N)> {
 //!     a.concat_arr(b).retype()
 //! }
 //! ```
-//! This also means that functions can recurse over type arguments without defining an extra helper
-//! trait for all the operations. Just having a [`Nat`] is always enough.
 //!
 //! It is also possible to implement custom operations without any extra bounds needed to use them.
 //! See the [`mod@expr`] module.

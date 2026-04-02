@@ -28,12 +28,12 @@ where
     /// use gnat::array::*;
     ///
     /// let arr = CopyArr::<_, gnat::lit!(20_000)>::from_fn(|i| i);
-    /// assert_eq!(arr.try_into_builtin::<19_999>(), Err(arr));
-    /// assert_eq!(arr.try_into_builtin::<20_001>(), Err(arr));
-    /// let builtin: [_; 20_000] = arr.try_into_builtin().unwrap();
+    /// assert_eq!(arr.try_into_std::<19_999>(), Err(arr));
+    /// assert_eq!(arr.try_into_std::<20_001>(), Err(arr));
+    /// let builtin: [_; 20_000] = arr.try_into_std().unwrap();
     /// assert_eq!(builtin, core::array::from_fn::<_, 20_000, _>(|i| i));
     /// ```
-    pub const fn try_into_builtin<const M: usize>(self) -> Result<[T; M], Self> {
+    pub const fn try_into_std<const M: usize>(self) -> Result<[T; M], Self> {
         match crate::to_usize::<N>() {
             Some(n) if n == M => Ok(
                 // SAFETY: `Array` invariant
@@ -124,7 +124,7 @@ where
     ///
     /// If `M > Self::Length`, the extra items will be forgotten.
     /// If `M < Self::Length`, the missing items will be left uninitialized.
-    /// Otherwise, the output is as if by [`try_into_builtin`](Self::try_into_builtin).
+    /// Otherwise, the output is as if by [`try_into_std`](Self::try_into_std).
     ///
     /// This method is useful for promoting recursively defined [`Array`]s like [`Arr`]
     /// if an upper bound for the length can be acquired as a const generic usize, e.g.
@@ -159,7 +159,7 @@ where
     ///         const VALUE: Self::Type = &{
     ///             let arr = to_binary_arr::<N>();
     ///             ArrApi::new(MaybeUninit::new(arr))
-    ///                 .into_uninit_builtin::<ARRLEN>()
+    ///                 .into_uninit_std::<ARRLEN>()
     ///         };
     ///     }
     ///     impl<N: Nat> gub::AcceptUpperBound for Doit<N> {
@@ -184,7 +184,7 @@ where
     /// }
     /// assert_eq!(to_str_binary::<gnat::lit!(0b100100010100)>(), "100100010100");
     /// ```
-    pub const fn into_uninit_builtin<const M: usize>(self) -> [MaybeUninit<T>; M] {
+    pub const fn into_uninit_std<const M: usize>(self) -> [MaybeUninit<T>; M] {
         // SAFETY:
         // - if M >= N, then transmuting through a union forgets `M - N` elements,
         //   which is safe.
