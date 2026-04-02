@@ -1,7 +1,11 @@
 [package]
 name = "gnat-proc"
 version.workspace = true
-edition = "2024"
+license.workspace = true
+authors.workspace = true
+description.workspace = true
+rust-version.workspace = true
+edition.workspace = true
 
 [lib]
 proc-macro = true
