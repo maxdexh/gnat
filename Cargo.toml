@@ -11,6 +11,8 @@ package.documentation = "https://docs.rs/gnat"
 
 [package]
 name = "gnat"
+categories = ["no-std"]
+keywords = ["no_std", "const"]
 version.workspace = true
 license.workspace = true
 authors.workspace = true
