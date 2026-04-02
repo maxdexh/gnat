@@ -11,7 +11,7 @@ pub type _H<N> = crate::Eval<PopBit<N>>;
 /// Eager version of `LastBit`.
 pub type _P<N> = crate::Eval<LastBit<N>>;
 
-#[apply(lazy)]
+#[apply(nat_expr)]
 // H := H(N), P := P(N), N > 0.
 // Result is unspecified for malformed input.
 //
@@ -23,7 +23,7 @@ pub type _P<N> = crate::Eval<LastBit<N>>;
 //
 // because H - 1 < 0 iff H = 0, which with N > 0 gives N = P = 1, that branch is never
 // taken and we can assume H - 1 = DecUnchecked(H) >= 0, so PushBit is valid for this.
-pub type _DecUnchecked<N> = If<
+pub type _DecUnchecked<N: NatExpr> = If<
     //
     _P<N>,
     PushBit<_H<N>, crate::lit!(0)>,

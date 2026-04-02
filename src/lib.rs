@@ -15,8 +15,6 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-extern crate self as gnat;
-
 // Nat Implementation internals
 mod internals;
 mod uimpl;
@@ -47,7 +45,7 @@ pub use nat_api::*;
 /// the natural numbers including zero and the types that implement this trait.
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a `Nat`",
-    label = "`{Self}` was expected to implement `Nat` directly",
+    label = "`{Self}` is expected to implement `Nat` directly",
     note = "Consider using `crate::Eval<{Self}>` if `{Self}: NatExpr`"
 )]
 pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
@@ -61,7 +59,7 @@ pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
     label = "To be used like a `Nat`, `{Self}` must implement `NatExpr`"
 )]
 pub trait NatExpr {
-    /// Performs the conversion to [`Nat`].
+    /// Evaluates to [`Nat`].
     type Eval: Nat;
 }
 

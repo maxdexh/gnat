@@ -1,20 +1,20 @@
 use super::*;
 
-#[apply(lazy)]
-pub type _LogUncheckedNormRec<B, N> = _LogUnchecked<
+#[apply(nat_expr)]
+pub type _LogUncheckedNormRec<B: NatExpr, N: NatExpr> = _LogUnchecked<
     B,
     // Normalize recursive argument
     crate::Eval<_DivUnchecked<N, B>>,
 >;
-#[apply(lazy)]
-pub type _LogUnchecked<B, N> = If<
+#[apply(nat_expr)]
+pub type _LogUnchecked<B: NatExpr, N: NatExpr> = If<
     //
     _Lt<N, B>,
     crate::lit!(0),
     _Inc<_LogUncheckedNormRec<B, N>>,
 >;
-#[apply(lazy)]
-pub type _Log<B, N> = If<
+#[apply(nat_expr)]
+pub type _Log<B: NatExpr, N: NatExpr> = If<
     // Check B > 1 and N > 0
     _And<_H<B>, N>,
     _LogUnchecked<B, N>,
@@ -23,7 +23,7 @@ pub type _Log<B, N> = If<
 >;
 
 /// Type-level [`ilog`](u128::ilog)
-///
+//
 /// The base is taken as the first argument.
 ///
 /// # Examples
@@ -48,8 +48,8 @@ pub type _Log<B, N> = If<
 )]
 pub type Log<B, N> = _Log;
 
-#[apply(lazy)]
-pub type _BaseLen<B, N> = If<
+#[apply(nat_expr)]
+pub type _BaseLen<B: NatExpr, N: NatExpr> = If<
     // Half of B is zero iff B <= 1
     _H<B>,
     If<

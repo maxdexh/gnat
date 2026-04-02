@@ -15,8 +15,8 @@ type _Double<N> = PushBit<N, crate::lit!(0)>;
 //       = 2 * (H * R) + P * R
 //       = 2 * (H * R) + if P { R } else { 0 }
 //       = AddIf(P, Double(H * R), R)
-#[apply(lazy)]
-pub type _Mul<L, R> = If<
+#[apply(nat_expr)]
+pub type _Mul<L: NatExpr, R: NatExpr> = If<
     L,
     _AddIf<
         _P<L>, //

@@ -8,8 +8,8 @@ use super::*;
 //       = if P { 2 * H + 2 } else { 2 * H + 1 }
 //       = if P { 2 * (H + 1) } else { 2 * H + 1 }
 //       = if P { PushBit(H + 1, 0) } else { PushBit(H, 1) }
-#[apply(lazy)]
-pub type _Inc<N> = If<
+#[apply(nat_expr)]
+pub type _Inc<N: NatExpr> = If<
     _P<N>, //
     PushBit<_Inc<_H<N>>, crate::lit!(0)>,
     PushBit<_H<N>, crate::lit!(1)>,
@@ -31,8 +31,8 @@ pub(crate) type _PlusBit<N, C> = If<C, _Inc<N>, N>;
 //   L + R + C
 // = 2 * (LH + RH + X / 2) + X % 2
 // = Append(LH + RH + X / 2, X % 2)
-#[apply(lazy)]
-pub type _Add<L, R, C = crate::lit!(0)> = If<
+#[apply(nat_expr)]
+pub type _Add<L: NatExpr, R: NatExpr, C: NatExpr = crate::lit!(0)> = If<
     L,
     PushBit<
         // LH + RH + X / 2

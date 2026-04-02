@@ -23,8 +23,8 @@ type _DoubleIf<N, C> = If<C, PushBit<N, crate::lit!(0)>, N>;
 // = Shl(L, H + H + P)
 // = Shl(Shl(Shl(L, H), H), P)
 // = DoubleIf(Shl(Shl(L, H), H), P)
-#[apply(lazy)]
-pub type _Shl<L, R> = If<
+#[apply(nat_expr)]
+pub type _Shl<L: NatExpr, R: NatExpr> = If<
     R,
     _DoubleIf<
         // NOTE: From testing, this is the fastest known way to write this recursion
@@ -52,8 +52,8 @@ type _HalfIf<N, C> = If<C, PopBit<N>, N>;
 
 // This implementation works the same as that of `_Shl`, except whenever
 // we double there, we halve here
-#[apply(lazy)]
-pub type _Shr<L, R> = If<
+#[apply(nat_expr)]
+pub type _Shr<L: NatExpr, R: NatExpr> = If<
     _And<L, R>,
     _HalfIf<
         // NOTE: See note on _Shl

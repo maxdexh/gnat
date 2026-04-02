@@ -9,8 +9,8 @@ type _Quad<N> = PushBit<PushBit<N, crate::lit!(0)>, crate::lit!(0)>;
 //
 // If P = 1: Pow(N, 2) = Pow(2 * H + 1, 2) = 4 * Pow(H, 2) + 4 * H + 1
 // If P = 0: Pow(N, 2) = Pow(2 * H, 2) = 4 * Pow(H, 2)
-#[apply(lazy)]
-pub type _Square<N> = If<
+#[apply(nat_expr)]
+pub type _Square<N: NatExpr> = If<
     N,
     If<
         _P<N>,
@@ -38,8 +38,8 @@ type _MulIf<N, F, C> = If<C, _Mul<F, N>, N>;
 // = Square(Pow(B, H)) * if P { B } else { 1 }
 // = if P { Square(Pow(B, H)) * B } else { Square(Pow(B, H)) }
 // = MulIf(Square(Pow(B, H)), B, P)
-#[apply(lazy)]
-pub type _Pow<B, E> = If<
+#[apply(nat_expr)]
+pub type _Pow<B: NatExpr, E: NatExpr> = If<
     E,
     _MulIf<
         _Square<_Pow<B, _H<E>>>, //

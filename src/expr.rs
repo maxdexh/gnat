@@ -107,33 +107,34 @@ use crate::{internals::InternalOp, utils::apply};
 
 /// Input format:
 /// ```compile_fail
-/// #[apply(lazy)]
-/// pub type A<P1, P2, ...> = $Val;
+/// #[apply(nat_expr)]
+/// pub type A<P1: NatExpr, P2: NatExpr, ...> = $Val;
 /// ```
 ///
 /// Output format:
 /// ```compile_fail
-/// #[apply(lazy)]
 /// pub struct A<P1, P2, ...>(P1, P2, ...);
 /// impl<P1: NatExpr, P2: NatExpr, ...> NatExpr for A<P1, P2, ...> {
 ///     type Eval = gnat::Eval<$Val>;
 /// }
 /// ```
-macro_rules! lazy {
+macro_rules! nat_expr {
     (
-        $(())?
+        (
+            $(eval_attrs = { $(#[$eval_attrs:meta])* },)?
+        )
         $(#[$attr:meta])*
-        pub type $Name:ident<$($P:ident $(= $Def:ty)?),* $(,)?> = $Val:ty;
+        $v:vis type $Name:ident<$($P:ident: $Bound:path $(= $Def:ty)?),* $(,)?> = $Val:ty;
     ) => {
         $(#[$attr])*
-        pub struct $Name<$($P $(= $Def)?),*>($($P),*);
-        impl<$($P: crate::NatExpr),*> crate::NatExpr for $Name<$($P),*> {
-            #[doc(hidden)]
+        $v struct $Name<$($P $(= $Def)?),*>($($P),*);
+        impl<$($P: $Bound),*> crate::NatExpr for $Name<$($P),*> {
+            $($(#[$eval_attrs])*)?
             type Eval = crate::Eval<$Val>;
         }
     };
 }
-pub(crate) use lazy;
+pub(crate) use nat_expr;
 
 /// Variadic [`Opaque`]
 macro_rules! VarOpaque {
@@ -166,15 +167,16 @@ macro_rules! opaque {
     (
         ()
         $(#[$attr:meta])*
-        pub type $Name:ident<$($P:ident $(: $Bound:path)? $(= $Def:ty)?),* $(,)?> $(: $OutBound:path)? = $LazyBase:ident;
+        $v:vis type $Name:ident<$($P:ident $(= $Def:ty)?),* $(,)?> $(: $OutBound:path)? = $LazyBase:ident;
     ) => {
         #[cfg(test)]
         #[allow(unused)] // Ensure that LazyBase is spanned for LSP
         const _: () = { use $LazyBase; };
 
-        $crate::expr::lazy! {
-            $(#[$attr])*
-            pub type $Name<$($P $(: $Bound)? $(= $Def)?),*> $(: $OutBound)? = $crate::Eval<$crate::expr::VarOpaque!($LazyBase<$($P),*>)>;
+        $(#[$attr])*
+        $v struct $Name<$($P $(= $Def)?),*>($($P),*);
+        impl<$($P: crate::NatExpr),*> crate::NatExpr for $Name<$($P),*> {
+            type Eval = $crate::Eval<$crate::expr::VarOpaque!($LazyBase<$($P),*>)>;
         }
     };
 }

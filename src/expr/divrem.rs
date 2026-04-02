@@ -8,8 +8,8 @@ type _SubIfGe<L, R> = If<
 >;
 
 // NaiveRem(L, R) := 2 * (H(L) % R) + P(L), where R > 0
-#[apply(lazy)]
-pub type _NaiveRem<L, R> = If<
+#[apply(nat_expr)]
+pub type _NaiveRem<L: NatExpr, R: NatExpr> = If<
     L,
     PushBit<
         _RemUnchecked<_H<L>, R>, //
@@ -50,8 +50,8 @@ pub(crate) type _RemUnchecked<L, R> = _SubIfGe<_NaiveRem<L, R>, R>;
 //
 // Since we still have NaiveRem(L, R) <= 2 * R - 1, it follows that
 // NaiveRem(L, R) / R = if NaiveRem(L, R) >= R { 1 } else { 0 }
-#[apply(lazy)]
-pub type _DivUnchecked<L, R> = If<
+#[apply(nat_expr)]
+pub type _DivUnchecked<L: NatExpr, R: NatExpr> = If<
     L,
     PushBit<
         _DivUnchecked<_H<L>, R>, //
@@ -61,8 +61,8 @@ pub type _DivUnchecked<L, R> = If<
     crate::lit!(0),
 >;
 
-#[apply(lazy)]
-pub type _Rem<L, R> = If<
+#[apply(nat_expr)]
+pub type _Rem<L: NatExpr, R: NatExpr> = If<
     R,
     _RemUnchecked<L, R>,
     // Return the dividend for division by zero
@@ -96,8 +96,8 @@ pub type _Rem<L, R> = If<
 )]
 pub type Rem<L, R> = _Rem;
 
-#[apply(lazy)]
-pub type _Div<L, R> = If<
+#[apply(nat_expr)]
+pub type _Div<L: NatExpr, R: NatExpr> = If<
     R,
     _DivUnchecked<L, R>,
     // Division by zero is defined as zero

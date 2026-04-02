@@ -96,10 +96,10 @@ where
 
 pub type PopDigit<N> = crate::Eval<expr::_Shr<N, crate::consts::PtrBits>>;
 
-#[utils::apply(expr::lazy)]
-pub type _DigitLenRec<N> = _DigitLen<PopDigit<N>>;
-#[utils::apply(expr::lazy)]
-pub type _DigitLen<N> = expr::If<
+#[utils::apply(crate::expr::nat_expr)]
+pub type _DigitLenRec<N: crate::NatExpr> = _DigitLen<PopDigit<N>>;
+#[utils::apply(crate::expr::nat_expr)]
+pub type _DigitLen<N: crate::NatExpr> = expr::If<
     N,
     expr::_Inc<_DigitLenRec<N>>, //
     crate::lit!(0),

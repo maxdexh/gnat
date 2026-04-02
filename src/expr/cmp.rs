@@ -9,8 +9,8 @@ use super::*;
 // iff PL = PR  and  HL = HR
 // iff 1 = Xnor(PL, PR)  and  1 = Eq(HL, HR)
 // iff 1 = if Xnor(PL, PR) == 1 { Eq(HL, HR) } else { 0 }
-#[apply(lazy)]
-pub type _Eq<L, R> = If<
+#[apply(nat_expr)]
+pub type _Eq<L: NatExpr, R: NatExpr> = If<
     L,
     If<
         _Xnor<_P<L>, _P<R>>,
@@ -29,8 +29,8 @@ pub type _Eq<L, R> = If<
 #[apply(test_op! test_eq, (L == R) as _)]
 pub type Eq<L, R> = _Eq;
 
-#[apply(lazy)]
-pub type _Ne<L, R> = IsZero<Eq<L, R>>;
+#[apply(nat_expr)]
+pub type _Ne<L: NatExpr, R: NatExpr> = IsZero<Eq<L, R>>;
 
 /// Type-level [`!=`](core::cmp::PartialEq)
 ///
@@ -53,8 +53,8 @@ type _LtByLast<L, R> = _And<
 // iff 2 * HL + PL < 2 * HR + PR
 // iff HL < HR or HL = HR and PL = 0 and PR = 1
 // iff Lt(HL, HR) = 1 or LtByLast(L, R) = 1
-#[apply(lazy)]
-pub type _Lt<L, R> = If<
+#[apply(nat_expr)]
+pub type _Lt<L: NatExpr, R: NatExpr> = If<
     R,
     If<
         L,
@@ -88,8 +88,8 @@ pub type Gt<L, R> = Lt<R, L>;
 #[doc(alias = ">=")]
 pub type Ge<L, R> = Le<R, L>;
 
-#[apply(lazy)]
-pub type _Le<L, R> = IsZero<_Lt<R, L>>;
+#[apply(nat_expr)]
+pub type _Le<L: NatExpr, R: NatExpr> = IsZero<_Lt<R, L>>;
 
 /// Type-level [`<=`](core::cmp::PartialOrd)
 ///
@@ -98,15 +98,15 @@ pub type _Le<L, R> = IsZero<_Lt<R, L>>;
 #[apply(opaque)]
 pub type Le<L, R> = _Le;
 
-#[apply(lazy)]
-pub type _Min<L, R> = If<_Lt<L, R>, R, L>;
+#[apply(nat_expr)]
+pub type _Min<L: NatExpr, R: NatExpr> = If<_Lt<L, R>, R, L>;
 
 /// Type-level [`min`](core::cmp::min)
 #[apply(opaque)]
 pub type Min<L, R> = _Min;
 
-#[apply(lazy)]
-pub type _Max<L, R> = If<_Lt<L, R>, L, R>;
+#[apply(nat_expr)]
+pub type _Max<L: NatExpr, R: NatExpr> = If<_Lt<L, R>, L, R>;
 
 /// Type-level [`max`](core::cmp::max)
 #[apply(opaque)]

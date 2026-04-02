@@ -11,8 +11,8 @@
 use super::*;
 
 // BitAnd(L, R) := Bitwise(And, L, R), see module level
-#[apply(lazy)]
-pub type _BitAnd<L, R> = If<
+#[apply(nat_expr)]
+pub type _BitAnd<L: NatExpr, R: NatExpr> = If<
     L,
     PushBit<
         _BitAnd<_H<R>, _H<L>>, // A & B = B & A, switching will terminate faster
@@ -29,8 +29,8 @@ pub type _BitAnd<L, R> = If<
 pub type BitAnd<L, R> = _BitAnd;
 
 // BitOr(L, R) := Bitwise(Or, L, R), see module level
-#[apply(lazy)]
-pub type _BitOr<L, R> = If<
+#[apply(nat_expr)]
+pub type _BitOr<L: NatExpr, R: NatExpr> = If<
     L,
     PushBit<
         _BitOr<_H<R>, _H<L>>, // A | B = B | A
@@ -48,8 +48,8 @@ pub type _BitOr<L, R> = If<
 pub type BitOr<L, R> = _BitOr;
 
 // BitXor(L, R) = Bitwise(Xor, L, R), see module level
-#[apply(lazy)]
-pub type _BitXor<L, R> = If<
+#[apply(nat_expr)]
+pub type _BitXor<L: NatExpr, R: NatExpr> = If<
     L,
     PushBit<
         _BitXor<_H<R>, _H<L>>, // A ^ B = B ^ A

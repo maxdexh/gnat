@@ -25,8 +25,8 @@ use super::*;
 // = 2 * (HL - HR) - 2 * CC + X % 2
 // = 2 * (HL - HR - CC) + X % 2
 // = Append(SubUnchecked(HL, HR, CC), X % 2)
-#[apply(lazy)]
-pub type _SubUnchecked<L, R, C = crate::lit!(0)> = If<
+#[apply(nat_expr)]
+pub type _SubUnchecked<L: NatExpr, R: NatExpr, C: NatExpr = crate::lit!(0)> = If<
     R,
     PushBit<
         _SubUnchecked<
@@ -48,8 +48,8 @@ pub type _SubUnchecked<L, R, C = crate::lit!(0)> = If<
 >;
 
 // AbsDiff(L, R) := |L - R| = if L < R { R - L } else { L - R }
-#[apply(lazy)]
-pub type _AbsDiff<L, R> = If<
+#[apply(nat_expr)]
+pub type _AbsDiff<L: NatExpr, R: NatExpr> = If<
     _Lt<L, R>, //
     _SubUnchecked<R, L>,
     _SubUnchecked<L, R>,
@@ -61,8 +61,8 @@ pub type _AbsDiff<L, R> = If<
 pub type AbsDiff<L, R> = _AbsDiff;
 
 // SatSub(L, R) := if L < R { 0 } else { L - R }
-#[apply(lazy)]
-pub type _SatSub<L, R> = If<
+#[apply(nat_expr)]
+pub type _SatSub<L: NatExpr, R: NatExpr> = If<
     _Lt<R, L>, //
     _SubUnchecked<L, R>,
     crate::lit!(0),

@@ -10,8 +10,10 @@ use super::*;
 ///
 /// See the [module level documentation](mod@crate::expr) for details on how to combine
 /// primitive operations.
-#[apply(lazy)]
-pub type PopBit<N> = InternalOp!(crate::Eval<N>, PopBit);
+#[apply(nat_expr!
+    eval_attrs = { #[doc(hidden)] },
+)]
+pub type PopBit<N: NatExpr> = InternalOp!(crate::Eval<N>, PopBit);
 
 /// Gets the last bit of a [`Nat`], thereby getting its parity.
 ///
@@ -23,8 +25,10 @@ pub type PopBit<N> = InternalOp!(crate::Eval<N>, PopBit);
 ///
 /// See the [module level documentation](mod@crate::expr) for details on how to combine
 /// primitive operations.
-#[apply(lazy)]
-pub type LastBit<N> = InternalOp!(crate::Eval<N>, LastBit);
+#[apply(nat_expr!
+    eval_attrs = { #[doc(hidden)] },
+)]
+pub type LastBit<N: NatExpr> = InternalOp!(crate::Eval<N>, LastBit);
 
 /// Pushes a single bit to the end of a [`Nat`].
 ///
@@ -36,8 +40,11 @@ pub type LastBit<N> = InternalOp!(crate::Eval<N>, LastBit);
 ///
 /// See the [module level documentation](mod@crate::expr) for details on how to combine
 /// primitive operations.
-#[apply(lazy)]
-pub type PushBit<N, P> = InternalOp!(crate::Eval<P>, PushSelfAsBit<crate::Eval<N>>);
+#[apply(nat_expr!
+    eval_attrs = { #[doc(hidden)] },
+)]
+pub type PushBit<N: NatExpr, P: NatExpr> =
+    InternalOp!(crate::Eval<P>, PushSelfAsBit<crate::Eval<N>>);
 
 /// Ternary operation
 ///
@@ -55,8 +62,10 @@ pub type PushBit<N, P> = InternalOp!(crate::Eval<P>, PushSelfAsBit<crate::Eval<N
 /// # Opaqueness
 /// This operation is not opaque in `Then` and `Else`. If `Cond` is known, then
 /// `crate::Eval<If<Cond, Then, Else>>` normalizes as specified above.
-#[apply(lazy)]
-pub type If<C, T, F> = InternalOp!(crate::Eval<C>, If<T, F>);
+#[apply(nat_expr!
+    eval_attrs = { #[doc(hidden)] },
+)]
+pub type If<C: NatExpr, T: NatExpr, F: NatExpr> = InternalOp!(crate::Eval<C>, If<T, F>);
 
 /// Makes a [`NatExpr`] opaque with respect to the value of a parameter.
 ///
@@ -67,8 +76,10 @@ pub type If<C, T, F> = InternalOp!(crate::Eval<C>, If<T, F>);
 /// [`P::Eval`](NatExpr).
 ///
 /// See the [module level documentation](mod@crate::expr) for details on opaqueness.
-#[apply(lazy)]
-pub type Opaque<P, Out> = crate::Eval<InternalOp!(crate::Eval<P>, Opaque<Out>)>;
+#[apply(nat_expr!
+    eval_attrs = { #[doc(hidden)] },
+)]
+pub type Opaque<P: NatExpr, Out: NatExpr> = crate::Eval<InternalOp!(crate::Eval<P>, Opaque<Out>)>;
 
 #[test]
 fn opaqueness_tests() {
