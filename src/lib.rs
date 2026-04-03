@@ -72,6 +72,7 @@ pub mod __mac;
 
 // internal utils
 mod const_fmt;
+mod fin;
 mod maxint;
 mod utils;
 
