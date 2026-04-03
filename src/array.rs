@@ -1,6 +1,14 @@
 //! Drop-in replacement for builtin `[T; N]` arrays, using [`Nat`] for the length
 //!
-//! TODO: Examples
+//! The API is structured in the following way:
+//! - Appropriate types implement [`Array`], which is an unsafe marker trait signifying that the
+//!   implementor is a contiguous sequence of items.
+//! - [`ArrApi`] is a `repr(transparent)` wrapper for [`Array`] implementors that has the actual
+//!   methods on it.
+//! - [`Arr`] and [`CopyArr`] are the actual equivalents to `[T; N]`; they take an item type and
+//!   a length as generic arguments. They are type aliases for inner array types wrapped in [`ArrApi`].
+//! - [`ArrVec`] and [`ArrDeq`] are [`Vec`] and [`std::collections::VecDeque`] equivalents backed
+//!   by arbitrary array types.
 //!
 //! # Oversized arrays
 //! Because [`Nat`] is not restricted to the values of a [`usize`], it is possible to have array
@@ -17,6 +25,12 @@
 use crate::internals;
 
 /// Trait for arrays whose length is measured as a [`Nat`](crate::Nat).
+///
+/// Implementors of this trait are contiguous chunks of memory, consisting of `Length` fields of
+/// type `Item`, with the same alignment of `Item`.
+///
+/// Note that [`MaybeUninit<A>`](std::mem::MaybeUninit) implements this trait for array types `A`
+/// and acts as an adapter that wraps the item type of `A` in `MaybeUninit`.
 ///
 /// # Safety
 /// Currently, this trait is sealed.

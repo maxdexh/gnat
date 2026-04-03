@@ -251,14 +251,14 @@ where
         self.split_at_spare().0
     }
 
-    /// Returns the vector potentially invalid elements as a slice.
+    /// Returns the vector's potentially invalid elements as a slice.
     ///
     /// See [`Self::split_at_spare`].
     pub const fn spare_capacity(&self) -> &[MaybeUninit<T>] {
         self.split_at_spare().1
     }
 
-    /// Returns the vector potentially invalid elements as a mutable slice.
+    /// Returns the vector's potentially invalid elements as a mutable slice.
     ///
     /// See [`Self::split_at_spare`].
     pub const fn spare_capacity_mut(&mut self) -> &mut [MaybeUninit<T>] {

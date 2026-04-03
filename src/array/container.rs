@@ -106,7 +106,8 @@ pub type _DigitLen<N: crate::NatExpr> = expr::If<
 >;
 pub type DigitLen<N> = crate::Eval<_DigitLen<N>>;
 
-pub(crate) struct BigCounter<N: Nat> {
+/// A number type that stores any number up to and including some [`Nat`].
+pub(crate) struct Fin<N: Nat> {
     /// # Safety
     /// Represents a number in base `usize::MAX + 1`.
     /// Little-endian, i.e. least significant digit at index 0.
@@ -123,7 +124,7 @@ const fn all_zeros(mut digits: &[usize]) -> bool {
     }
     true
 }
-impl<N: Nat> BigCounter<N> {
+impl<N: Nat> Fin<N> {
     pub const fn dec(&mut self) -> bool {
         if self.is_zero() {
             return false;
@@ -169,7 +170,7 @@ impl<N: Nat> BigCounter<N> {
                 digits: if crate::is_zero::<N>() {
                     CopyArr::of(0)
                 } else {
-                    BigCounter::<PopDigit<N>>::max()
+                    Fin::<PopDigit<N>>::max()
                         .digits
                         .concat_arr([crate::to_usize_overflowing::<N>().0])
                         .try_retype()
@@ -189,34 +190,36 @@ impl<N: Nat> BigCounter<N> {
     }
 }
 
-/// # Safefty
-/// It must be safe to conceive the ZST `T` from nothing.
+/// # Safety
+/// Caller must own an instance of the ZST `T`, such that one can be constructed
+/// from nothing. Afterwards, the caller must correctly account for this instance.
 const unsafe fn conjure_zst<T>() -> T {
     debug_assert!(const { size_of::<T>() == 0 });
 
-    // SAFETY: By definition. Reading ZSTs from dangling is legal.
+    // SAFETY: By safety requirements.
+    // This is a known valid way to create ZSTs.
     unsafe { core::ptr::dangling::<T>().read() }
 }
-pub(crate) struct InstanceCounter<T, N: Nat> {
+pub(crate) struct ZSTGuard<T, N: Nat> {
     /// # Safety
-    /// - This type owns as many instances as indicated by the value represented by `digits`
+    /// - This type owns as many instances of `T` as this field indicates
     /// - `T` must be a ZST
-    counter: BigCounter<N>,
+    instances: Fin<N>,
     _p: PhantomData<T>,
 }
-impl<T, N: Nat> Drop for InstanceCounter<T, N> {
+impl<T, N: Nat> Drop for ZSTGuard<T, N> {
     fn drop(&mut self) {
         while self.pop().is_some() {}
     }
 }
-impl<T, N: Nat> InstanceCounter<T, N> {
+impl<T, N: Nat> ZSTGuard<T, N> {
     pub const fn full(arr: impl Array<Item = T, Length = N>) -> Self {
         assert!(size_of::<T>() == 0);
         core::mem::forget(arr);
         // SAFETY: Array of `N` instances was forgotten, so this is logically
         // equivalent to moving them into a new container.
         Self {
-            counter: BigCounter::max(),
+            instances: Fin::max(),
             _p: PhantomData,
         }
     }
@@ -224,12 +227,12 @@ impl<T, N: Nat> InstanceCounter<T, N> {
         assert!(size_of::<T>() == 0);
         // SAFETY: An empty container is trivially safe to create.
         Self {
-            counter: BigCounter::zero(),
+            instances: Fin::zero(),
             _p: PhantomData,
         }
     }
     pub const fn pop(&mut self) -> Option<T> {
-        match self.counter.dec() {
+        match self.instances.dec() {
             // SAFETY: Counter was decremented, so creating one instance from nothing
             // is logically equivalent to moving it out of the container.
             true => Some(unsafe { conjure_zst() }),
@@ -241,16 +244,16 @@ impl<T, N: Nat> InstanceCounter<T, N> {
     pub const unsafe fn push_unchecked(&mut self, item: T) {
         // SAFETY:
         // - `inc_unchecked` is safe because the counter is smaller than `N`
-        // - incrementing the instance count is safe because an instance was
-        //   because it is logically equivalent to moving the forgotten
-        //   instance into the container.
+        // - incrementing the instance count is safe because an instance is
+        //   forgotten in return. This is logically equivalent to moving
+        //   the forgotten instance into the container.
         unsafe {
             core::mem::forget(item);
-            self.counter.inc_unchecked()
+            self.instances.inc_unchecked()
         }
     }
     pub const fn len(&self) -> Option<usize> {
-        self.counter.to_usize()
+        self.instances.to_usize()
     }
 }
 
@@ -260,16 +263,16 @@ pub(crate) struct ArrBuilder<A: Array> {
     /// of T, where the value of the counter is the number of free slots.
     #[allow(clippy::complexity)]
     inner: condty::CondResult<
-        PopDigit<A::Length>,                 // if N is oversized
-        InstanceCounter<A::Item, A::Length>, // use a counter
-        ArrVecApi<A>,                        // else a vec
+        PopDigit<A::Length>,          // if N is oversized
+        ZSTGuard<A::Item, A::Length>, // use a counter
+        ArrVecApi<A>,                 // else a vec
     >,
 }
 impl<A: Array> ArrBuilder<A> {
     pub const fn new() -> Self {
         Self {
             inner: condty::ctx!(
-                |c| c.new_ok(InstanceCounter::empty()),
+                |c| c.new_ok(ZSTGuard::empty()),
                 |c| c.new_err(ArrVecApi::new()), //
             ),
         }
@@ -302,16 +305,16 @@ impl<A: Array> ArrBuilder<A> {
 pub(crate) struct ArrConsumer<A: Array> {
     #[allow(clippy::complexity)]
     inner: condty::CondResult<
-        PopDigit<A::Length>,                 // if Length is oversized
-        InstanceCounter<A::Item, A::Length>, // use a counter
-        DoubleEndedBuffer<A>,                // else a buffer
+        PopDigit<A::Length>,          // if Length is oversized
+        ZSTGuard<A::Item, A::Length>, // use a counter
+        DoubleEndedBuffer<A>,         // else a buffer
     >,
 }
 impl<A: Array> ArrConsumer<A> {
     pub const fn new(arr: A) -> Self {
         Self {
             inner: condty::ctx!(
-                |c| c.new_ok(InstanceCounter::full(arr)),
+                |c| c.new_ok(ZSTGuard::full(arr)),
                 |c| c.new_err(DoubleEndedBuffer::new(arr)), //
             ),
         }
@@ -349,9 +352,9 @@ impl<A: Array> ArrConsumer<A> {
 
 pub(crate) struct ArrRefConsumer<'a, T, N: Nat> {
     inner: condty::CondResult<
-        PopDigit<N>,            // if oversized
-        (BigCounter<N>, &'a T), // yield the same reference N times
-        &'a [T],                // else yield from a slice
+        PopDigit<N>,     // if oversized
+        (Fin<N>, &'a T), // yield the same reference N times
+        &'a [T],         // else yield from a slice
     >,
 }
 impl<'a, T, N: Nat> ArrRefConsumer<'a, T, N> {
@@ -364,7 +367,7 @@ impl<'a, T, N: Nat> ArrRefConsumer<'a, T, N> {
         Self {
             inner: condty::ctx!(
                 |c| c.new_ok((
-                    BigCounter::max(),
+                    Fin::max(),
                     // SAFETY: array length is nonzero, so this points to the first item.
                     // (which has the same address as all the other items, because T is a ZST)
                     unsafe { &*core::ptr::from_ref(arr).cast() },
