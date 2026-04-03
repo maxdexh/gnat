@@ -36,7 +36,7 @@ dependencies = [
 
 [[package]]
 name = "gnat"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "const-util",
  "generic-upper-bound",
@@ -45,7 +45,7 @@ dependencies = [
 
 [[package]]
 name = "gnat-proc"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "ibig",
  "proc-macro2",
