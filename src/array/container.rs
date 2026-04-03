@@ -2,7 +2,7 @@ use crate::condty;
 use crate::{
     Nat,
     array::{helper::*, *},
-    fin::Fin,
+    num::Fin,
 };
 use core::marker::PhantomData;
 use core::mem::MaybeUninit;
@@ -124,7 +124,7 @@ impl<T, N: Nat> ZSTGuard<T, N> {
         // SAFETY: Array of `N` instances was forgotten, so this is logically
         // equivalent to moving them into a new container.
         Self {
-            instances: Fin::max(),
+            instances: Fin::MAX,
             _p: PhantomData,
         }
     }
@@ -132,12 +132,12 @@ impl<T, N: Nat> ZSTGuard<T, N> {
         assert!(size_of::<T>() == 0);
         // SAFETY: An empty container is trivially safe to create.
         Self {
-            instances: Fin::zero(),
+            instances: Fin::ZERO,
             _p: PhantomData,
         }
     }
     pub const fn pop(&mut self) -> Option<T> {
-        match self.instances.dec() {
+        match self.instances.saturating_dec() {
             // SAFETY: Counter was decremented, so creating one instance from nothing
             // is logically equivalent to moving it out of the container.
             true => Some(unsafe { conjure_zst() }),
@@ -274,7 +274,7 @@ impl<'a, T, N: Nat> ArrRefConsumer<'a, T, N> {
         Self {
             inner: condty::ctx!(
                 |c| c.new_ok((
-                    Fin::max(),
+                    Fin::MAX,
                     // SAFETY: array length is nonzero, so this points to the first item.
                     // (which has the same address as all the other items, because T is a ZST)
                     unsafe { &*core::ptr::from_ref(arr).cast() },
