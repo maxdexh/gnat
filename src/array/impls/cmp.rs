@@ -1,4 +1,8 @@
-use crate::{NatExpr, array::*, consts::Usize};
+use crate::{
+    NatExpr,
+    array::{container::ArrRefConsumer, *},
+    consts::Usize,
+};
 
 fn partial_eq_impl<A: Array, U>(lhs: &ArrApi<A>, rhs: &[U]) -> bool
 where
@@ -71,8 +75,19 @@ where
     A::Item: PartialOrd,
 {
     fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-        // FIXME: oversize
-        self.as_slice().partial_cmp(other.as_slice())
+        if crate::to_usize::<A::Length>().is_some() {
+            self.as_slice().partial_cmp(other.as_slice())
+        } else {
+            let mut l_iter = ArrRefConsumer::new(self);
+            let mut r_iter = ArrRefConsumer::new(other);
+            while let (Some(l), Some(r)) = (l_iter.pop_front(), r_iter.pop_front()) {
+                let cmp = l.partial_cmp(r);
+                if cmp != Some(core::cmp::Ordering::Equal) {
+                    return cmp;
+                }
+            }
+            Some(core::cmp::Ordering::Equal)
+        }
     }
 }
 impl<A> Ord for ArrApi<A>
@@ -81,7 +96,18 @@ where
     A::Item: Ord,
 {
     fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-        // FIXME: oversize
-        self.as_slice().cmp(other.as_slice())
+        if crate::to_usize::<A::Length>().is_some() {
+            self.as_slice().cmp(other.as_slice())
+        } else {
+            let mut l_iter = ArrRefConsumer::new(self);
+            let mut r_iter = ArrRefConsumer::new(other);
+            while let (Some(l), Some(r)) = (l_iter.pop_front(), r_iter.pop_front()) {
+                let cmp = l.cmp(r);
+                if cmp != core::cmp::Ordering::Equal {
+                    return cmp;
+                }
+            }
+            core::cmp::Ordering::Equal
+        }
     }
 }

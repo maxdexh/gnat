@@ -64,8 +64,7 @@ pub use crate::internals::array_types::*;
 ///
 /// The struct has a second generic parameter which is always the item of the array.
 /// This gives better lifetime inference for the item type. Some methods, such as
-/// [`Self::each_ref`] and the [`Index`](core::ops::Index) impl would not compile
-/// the way they are written without it.
+/// [`Self::each_ref`], would not compile without it.
 #[repr(transparent)]
 pub struct ArrApi<A: Array<Item = T>, T = <A as Array>::Item> {
     /// The array being wrapped.
