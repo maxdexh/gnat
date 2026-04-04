@@ -9,13 +9,15 @@
 //! `gnat` differs from `typenum` in that its [`Nat`] trait is not a marker trait, but defines
 //! enough (internal) structure to be able to define and use operations on it, generically.
 //!
-//! This crate is to the unstable `generic_const_expr` feature what `typenum` is to the already
-//! stable `min_const_generics` feature. For example, consider the case of concatenating arrays
+//! This crate is more expressive than `typenum` or `generic_const_exprs`.
+//! For example, consider the case of concatenating arrays
 //! at compile time
 //! ```
 #![cfg_attr(doctest, doc = "```\n```compile_fail")]
-//! // Ideal function, requires #![feature(generic_const_expr)]
-//! const fn concat_arrays_gce<T, const M: usize, const N: usize>(
+//! // Ideal function, but even under #![feature(generic_const_expr)], this does not compile.
+//! // We would need a `where [(); M + N]:` bound to ensure that the result of the addition is
+//! // well-formed.
+//! const fn concat_arrays_gcex<T, const M: usize, const N: usize>(
 //!     a: [T; M],
 //!     b: [T; N],
 //! ) -> [T; M + N] {
@@ -23,7 +25,7 @@
 //! }
 //! // typenum + generic-array implementation
 //! use generic_array::{GenericArray, ArrayLength};
-//! const fn concat_arrays_gar<T, M: ArrayLength, N: ArrayLength>(
+//! const fn concat_arrays_tnum<T, M: ArrayLength, N: ArrayLength>(
 //!     a: GenericArray<T, M>,
 //!     b: GenericArray<T, N>,
 //! ) -> GenericArray<T, typenum::op!(M + N)>
@@ -36,11 +38,41 @@
 //! ```
 //! // gnat implementation
 //! use gnat::{Nat, array::Arr};
-//! const fn concat_arrays_nat<T, M: Nat, N: Nat>(
+//! const fn concat_arrays_gnat<T, M: Nat, N: Nat>(
 //!     a: Arr<T, M>,
 //!     b: Arr<T, N>,
 //! ) -> Arr<T, gnat::eval!(M + N)> {
 //!     a.concat_arr(b).retype()
+//! }
+//! ```
+//!
+//! Because we do not require any bounds at all for operations, this also means that we can write
+//! recursive functions over [`Nat`] parameters, the equvialent of which is almost impossible in typenum
+//! and `generic_const_exprs`, since it would require recursively specifying that the output of the
+//! operation can be operated on again:
+//! ```compile_fail
+//! fn recursive_gcex<const N: usize>() -> u32
+//! where
+//!     [(); N / 2]:,
+//!     [(); { N / 2 } / 2]:,
+//!     // ... we would need infinitely many bounds, even though we always reach 0
+//! {
+//!    if N == 0 { 0 } else { recursive_gce::<{ N / 2 }>() + 1 }
+//! }
+//!
+//! use {std::ops::Div, typenum::P2};
+//! fn recursive_tnum<N>() -> u32
+//! where
+//!     N: Div<P2, Output: Div<P2, Output: Div<P2>>> + typenum::Unsigned
+//!     // Again, we would need infinitely many bounds
+//! {
+//!    if N::USIZE == 0 { 0 } else { recursive_gce::<typenum::op!(N / 2)>() + 1 }
+//! }
+//! ```
+//! ```
+//! use gnat::Nat;
+//! fn recursive_gnat<N: Nat>() -> u32 {
+//!     if gnat::to_usize::<N>() == Some(0) { 0 } else { recursive_gnat::<gnat::eval!(N / 2)>() }
 //! }
 //! ```
 //!
