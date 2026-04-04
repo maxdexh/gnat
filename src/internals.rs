@@ -1,8 +1,7 @@
 use crate::{Nat, NatExpr, array::Array, uimpl::*};
 
-// NOTE: items from this module with names starting with _,
-// except the above, are not meant to be used from anywhere
-// but this module. This includes associated items.
+// NOTE: items from this module with names starting with _
+// are not meant to be used from anywhere but this module.
 
 pub trait _Cond {
     type _CondTy<T, F>;
