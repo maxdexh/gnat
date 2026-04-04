@@ -22,6 +22,10 @@ edition.workspace = true
 repository.workspace = true
 documentation.workspace = true
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 const-util = "2.2.0"
 gnat-proc = { path = "proc", version = "0.1.7" }
