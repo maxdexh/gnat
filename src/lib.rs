@@ -57,7 +57,11 @@
 //!     [(); { N / 2 } / 2]:,
 //!     // ... we would need infinitely many bounds, even though we always reach 0
 //! {
-//!    if N == 0 { 0 } else { recursive_gce::<{ N / 2 }>() + 1 }
+//!     if N == 0 {
+//!         0
+//!     } else {
+//!         recursive_gce::<{ N / 2 }>() + 1
+//!     }
 //! }
 //!
 //! use {std::ops::Div, typenum::P2};
@@ -66,14 +70,23 @@
 //!     N: Div<P2, Output: Div<P2, Output: Div<P2>>> + typenum::Unsigned
 //!     // Again, we would need infinitely many bounds
 //! {
-//!    if N::USIZE == 0 { 0 } else { recursive_gce::<typenum::op!(N / 2)>() + 1 }
+//!     if N::USIZE == 0 {
+//!         0
+//!     } else {
+//!         recursive_gce::<typenum::op!(N / 2)>() + 1
+//!     }
 //! }
 //! ```
 //! ```
 //! use gnat::Nat;
 //! fn recursive_gnat<N: Nat>() -> u32 {
-//!     if gnat::to_usize::<N>() == Some(0) { 0 } else { recursive_gnat::<gnat::eval!(N / 2)>() }
+//!     if gnat::to_usize::<N>() == Some(0) {
+//!         0
+//!     } else {
+//!         recursive_gnat::<gnat::eval!(N / 2)>() + 1
+//!     }
 //! }
+//! assert_eq!(recursive_gnat::<gnat::lit!(10)>(), 4); // 10 5 2 1 0
 //! ```
 //!
 //! It is also possible to implement custom operations without any extra bounds needed to use them.
