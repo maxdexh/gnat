@@ -10,20 +10,20 @@
 //! enough (internal) structure to be able to define and use operations on it, generically.
 //!
 //! This crate is more expressive than `typenum` or `generic_const_exprs`.
-//! For example, consider the case of concatenating arrays
-//! at compile time
+//! For example, consider the case of concatenating arrays at compile time:
 //! ```
 #![cfg_attr(doctest, doc = "```\n```compile_fail")]
-//! // Ideal function, but even under #![feature(generic_const_expr)], this does not compile.
-//! // We would need a `where [(); M + N]:` bound to ensure that the result of the addition is
-//! // well-formed.
+//! #![feature(generic_const_exprs)]
 //! const fn concat_arrays_gcex<T, const M: usize, const N: usize>(
 //!     a: [T; M],
 //!     b: [T; N],
-//! ) -> [T; M + N] {
+//! ) -> [T; M + N]
+//! where
+//!     [T; M + N]:, // well-formedness bound
+//! {
 //!     todo!()
 //! }
-//! // typenum + generic-array implementation
+//!
 //! use generic_array::{GenericArray, ArrayLength};
 //! const fn concat_arrays_tnum<T, M: ArrayLength, N: ArrayLength>(
 //!     a: GenericArray<T, M>,
@@ -35,13 +35,13 @@
 //!     todo!()
 //! }
 //! ```
+//! Using this crate:
 //! ```
-//! // gnat implementation
 //! use gnat::{Nat, array::Arr};
 //! const fn concat_arrays_gnat<T, M: Nat, N: Nat>(
 //!     a: Arr<T, M>,
 //!     b: Arr<T, N>,
-//! ) -> Arr<T, gnat::eval!(M + N)> {
+//! ) -> Arr<T, gnat::eval!(M + N)> { // no extra bounds!
 //!     a.concat_arr(b).retype()
 //! }
 //! ```
