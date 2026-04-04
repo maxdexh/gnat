@@ -124,9 +124,9 @@ pub use nat_api::*;
 /// It is guaranteed that there is a one-to-one correspondence between
 /// the natural numbers including zero and the types that implement this trait.
 #[diagnostic::on_unimplemented(
-    message = "`{Self}` is not a `Nat`",
-    label = "`{Self}` is expected to implement `Nat` directly",
-    note = "Consider using `crate::Eval<{Self}>` if `{Self}: NatExpr`"
+    message = "`{Self}` is not a `gnat::Nat`",
+    label = "`{Self}` is expected to implement `gnat::Nat` directly",
+    note = "Consider using `gnat::Eval<{Self}>` if `{Self}: gnat::NatExpr`"
 )]
 pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 
@@ -135,8 +135,8 @@ pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 /// This is not only a conversion trait, but forms an important part in how most operations are
 /// implemented. See the [`mod@expr`] module.
 #[diagnostic::on_unimplemented(
-    message = "Cannot convert `{Self}` to a `Nat`",
-    label = "To be used like a `Nat`, `{Self}` must implement `NatExpr`"
+    message = "Cannot convert `{Self}` to a `gnat::Nat`",
+    label = "To be used like a `Nat`, `{Self}` must implement `gnat::NatExpr`"
 )]
 pub trait NatExpr {
     /// Evaluates to [`Nat`].
