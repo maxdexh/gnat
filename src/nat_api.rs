@@ -92,7 +92,7 @@ pub const fn to_str<N: NatExpr>() -> &'static str {
     shortcut_umax::<N::Eval>()
 }
 
-/// Converts a [`Nat`] to a `usize` with overflow and returns whether any wrapping
+/// Converts a [`Nat`] to a `usize` with overflow and returns whether wrapping
 /// occurred.
 pub const fn to_usize_overflowing<N: NatExpr>() -> (usize, bool) {
     let (n, o1) = to_umax_overflowing::<N::Eval>();
@@ -107,7 +107,7 @@ pub const fn to_usize<N: NatExpr>() -> Option<usize> {
     }
 }
 
-/// Converts a [`Nat`] to a `u128` with overflow and returns whether any wrapping
+/// Converts a [`Nat`] to a `u128` with overflow and returns whether wrapping
 /// occurred.
 pub const fn to_u128_overflowing<N: NatExpr>() -> (u128, bool) {
     let (n, o1) = to_umax_overflowing::<N::Eval>();

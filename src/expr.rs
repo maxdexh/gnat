@@ -1,9 +1,11 @@
 //! Module with operations for [`Nat`]s.
 //!
+//! This module defines many common mathematical type-level operations on natural numbers.
+//!
 //! # Laziness
-//! Operations implemented as a struct implementing [`NatExpr`] are lazy in the sense that
-//! they will only be evaluated to a [`Nat`] instance if the associated [`NatExpr::Eval`]
-//! is accessed.
+//! Operations are implemented by implementing [`NatExpr`] on a generic struct.
+//! This makes them lazy in the sense that they will only be evaluated to a [`Nat`]
+//! once their associated [`NatExpr::Eval`] is accessed.
 //!
 //! Most importantly, [`If`] is implemented such that only the necessary branch is evaluated,
 //! which means it is possible to do recursion with it.

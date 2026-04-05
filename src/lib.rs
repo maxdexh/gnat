@@ -7,10 +7,15 @@
 //! The use cases are the same as those of generic consts.
 //!
 //! `gnat` differs from `typenum` in that its [`Nat`] trait is not a marker trait, but defines
-//! enough (internal) structure to be able to define and use operations on it, generically.
+//! enough structure (through hidden generic associated types) to be able to define and use
+//! generic operations on it, without any extra bounds.
+//! As such, this crate is more expressive than `typenum` and `generic_const_exprs`.
 //!
-//! This crate is more expressive than `typenum` or `generic_const_exprs`.
-//! For example, consider the case of concatenating arrays at compile time:
+//! For details about defining custom operations, see the [`expr`](mod@expr) module documentation.
+//!
+//! # Some motivating examples
+//! #### Concatenating arrays at compile time
+//! Using `generic_const_exprs` or `typenum`/`generic-array`:
 //! ```
 #![cfg_attr(doctest, doc = "```\n```compile_fail")]
 //! #![feature(generic_const_exprs)]
@@ -19,9 +24,9 @@
 //!     b: [T; N],
 //! ) -> [T; M + N]
 //! where
-//!     [T; M + N]:, // well-formedness bound
+//!     [T; M + N]:, // Required well-formedness bound
 //! {
-//!     todo!()
+//!     todo!() // Possible with unsafe code
 //! }
 //!
 //! use generic_array::{GenericArray, ArrayLength};
@@ -32,7 +37,7 @@
 //! where // ArrayLength is not enough, we also need to add a bound for `+`
 //!     M: std::ops::Add<N, Output: ArrayLength>,
 //! {
-//!     todo!()
+//!     todo!() // Possible with unsafe code
 //! }
 //! ```
 //! Using this crate:
@@ -41,46 +46,52 @@
 //! const fn concat_arrays_gnat<T, M: Nat, N: Nat>(
 //!     a: Arr<T, M>,
 //!     b: Arr<T, N>,
-//! ) -> Arr<T, gnat::eval!(M + N)> { // no extra bounds!
-//!     a.concat_arr(b).retype()
+//! ) -> Arr<T, gnat::eval!(M + N)> { // No extra bounds!
+//!     a.concat_arr(b).retype() // There is even a method for this :)
 //! }
 //! ```
-//!
-//! Because we do not require any bounds at all for operations, this also means that we can write
-//! recursive functions over [`Nat`] parameters, the equvialent of which is almost impossible in typenum
-//! and `generic_const_exprs`, since it would require recursively specifying that the output of the
-//! operation can be operated on again:
+//! #### Const Recursion
+//! Naively writing a function that recurses over the const parameter is impossible in
+//! `generic_const_exprs` and `typenum`, since the recursive argument needs the same
+//! bounds as the parameter:
 //! ```compile_fail
+//! #![feature(generic_const_exprs)]
 //! fn recursive_gcex<const N: usize>() -> u32
 //! where
-//!     [(); N / 2]:,
-//!     [(); { N / 2 } / 2]:,
-//!     // ... we would need infinitely many bounds, even though we always reach 0
+//!     [(); N / 2]:, // The argument must be well-formed
+//!     [(); (N / 2) / 2]:, // The argument's argument must be well-formed
+//!     // ... need infinitely many bounds, even though N converges to 0
 //! {
 //!     if N == 0 {
 //!         0
 //!     } else {
+//!         // The bounds above for N need to imply the same bounds for N / 2
 //!         recursive_gce::<{ N / 2 }>() + 1
 //!     }
 //! }
 //!
-//! use {std::ops::Div, typenum::P2};
+//! use {std::ops::Div, typenum::{P2, Unsigned}};
 //! fn recursive_tnum<N>() -> u32
 //! where
-//!     N: Div<P2, Output: Div<P2, Output: Div<P2>>> + typenum::Unsigned
-//!     // Again, we would need infinitely many bounds
+//!     N: Unsigned + Div<P2>,
+//!     N::Output: Unsigned + Div<P2>,
+//!     <N::Output as Div<P2>>::Output: Unsigned + Div<P2>,
+//!     // ... again, we would need this to repeat infinitely often
 //! {
-//!     if N::USIZE == 0 {
+//!     if N::USIZE == 0 { // (Pretend this correctly handles overflow)
 //!         0
 //!     } else {
 //!         recursive_gce::<typenum::op!(N / 2)>() + 1
 //!     }
 //! }
 //! ```
+//! While this can be expressed using a helper trait like `trait RecDiv2: Unsigned { type Output: RecDiv2;  }`,
+//! it is combersome and leaks into the bounds of every other calling function.
+//!
+//! Since this crate does not require such bounds, the naive implementation just works:
 //! ```
-//! use gnat::Nat;
-//! fn recursive_gnat<N: Nat>() -> u32 {
-//!     if gnat::to_usize::<N>() == Some(0) {
+//! fn recursive_gnat<N: gnat::Nat>() -> u32 {
+//!     if gnat::is_zero::<N>() {
 //!         0
 //!     } else {
 //!         recursive_gnat::<gnat::eval!(N / 2)>() + 1
@@ -88,9 +99,6 @@
 //! }
 //! assert_eq!(recursive_gnat::<gnat::lit!(10)>(), 4); // 10 5 2 1 0
 //! ```
-//!
-//! It is also possible to implement custom operations without any extra bounds needed to use them.
-//! See the [`mod@expr`] module.
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(not(any(test, doc, feature = "std")), no_std)]
 #![cfg_attr(test, recursion_limit = "1024")]
@@ -147,6 +155,16 @@ pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 ///
 /// This is not only a conversion trait, but forms an important part in how most operations are
 /// implemented. See the [`mod@expr`] module.
+///
+/// It is common to define operations like this:
+/// ```
+#[cfg_attr(doctest, doc = "```\n```compile_fail")]
+/// struct Add<L, R>(L, R);
+/// impl<L: gnat::NatExpr, R: gnat::NatExpr> gnat::NatExpr for Add<L, R> {
+///     type Eval = ...;
+/// }
+/// ```
+/// This can be abbreviated with the [`nat_expr`] macro.
 #[diagnostic::on_unimplemented(
     message = "Cannot convert `{Self}` to a `gnat::Nat`",
     label = "To be used like a `Nat`, `{Self}` must implement `gnat::NatExpr`"
@@ -158,7 +176,10 @@ pub trait NatExpr {
 
 /// Turns an integer literal into a [`Nat`].
 ///
-/// If you have a small constant value that is not a literal, use [`consts::Usize`].
+/// If you need to convert a value stored in a `const` that is small, you
+/// can instead convert it using [`consts::Usize`]. Otherwise consider
+/// declaring it as a [`Nat`] instead and using [`to_usize`] to get the
+/// value.
 ///
 /// # Examples
 /// ```
@@ -247,14 +268,17 @@ macro_rules! expr {
     { $($t:tt)* } => { $crate::__mac::proc::expr!($($t)*) };
 }
 
-/// Same as [`expr!`] wrapped in [`Eval`]. Useful for use with [`mod@array`].
+/// Same as [`expr!`] wrapped in [`Eval`]. Useful [`mod@array`] lengths.
 ///
 /// # Examples
-/// The [`mod@array`] uses [`Nat`] instead of [`NatExpr`] (for better type inference), so
-/// this is more convenient than [`expr!`]+[`Eval`]:
+/// The [`mod@array`] only accepts [`Nat`] for lengths, rather than [`NatExpr`] (for better type inference).
+/// This macro is more convenient than [`expr!`]+[`Eval`]:
 /// ```
 /// use gnat::{Nat, array::*};
-/// fn concat<T, M: Nat, N: Nat>(a: Arr<T, M>, b: Arr<T, N>) -> Arr<T, gnat::eval! { M + N }> {
+/// fn concat<T, M: Nat, N: Nat>(
+///     a: Arr<T, M>,
+///     b: Arr<T, N>,
+/// ) -> Arr<T, gnat::eval! { M + N }> { // Alternatively: gnat::Eval<gnat::expr!(M + N)>
 ///     a.concat_arr(b).retype()
 /// }
 /// ```

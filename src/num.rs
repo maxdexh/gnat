@@ -41,7 +41,7 @@ impl<N: Nat> Fin<N> {
         NumSlice::from_digits_mut(self.unsafe_digits.as_mut_slice())
     }
 
-    /// Converts to a [`Num`] slice.
+    /// Converts to a [`NumSlice`].
     pub const fn as_num(&self) -> &NumSlice {
         NumSlice::from_digits(self.unsafe_digits.as_slice())
     }

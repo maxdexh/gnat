@@ -26,43 +26,96 @@ bound [`Nat`](https://docs.rs/gnat/latest/gnat/trait.Nat.html).
 The use cases are the same as those of generic consts.
 
 `gnat` differs from `typenum` in that its [`Nat`](https://docs.rs/gnat/latest/gnat/trait.Nat.html) trait is not a marker trait, but defines
-enough (internal) structure to be able to define and use operations on it, generically.
+enough structure (through hidden generic associated types) to be able to define and use
+generic operations on it, without any extra bounds.
+As such, this crate is more expressive than `typenum` and `generic_const_exprs`.
 
-This crate is to the unstable `generic_const_expr` feature what `typenum` is to the already
-stable `min_const_generics` feature. For example, consider the case of concatenating arrays
-at compile time
+For details about defining custom operations, see the [`expr`](https://docs.rs/gnat/latest/gnat/expr/) module documentation.
+
+# Some motivating examples
+#### Concatenating arrays at compile time
+Using `generic_const_exprs` or `typenum`/`generic-array`:
 ```rust
-// Ideal function, requires #![feature(generic_const_expr)]
-const fn concat_arrays_gce<T, const M: usize, const N: usize>(
+#![feature(generic_const_exprs)]
+const fn concat_arrays_gcex<T, const M: usize, const N: usize>(
     a: [T; M],
     b: [T; N],
-) -> [T; M + N] {
-    todo!()
+) -> [T; M + N]
+where
+    [T; M + N]:, // Required well-formedness bound
+{
+    todo!() // Possible with unsafe code
 }
-// typenum + generic-array implementation
+
 use generic_array::{GenericArray, ArrayLength};
-const fn concat_arrays_gar<T, M: ArrayLength, N: ArrayLength>(
+const fn concat_arrays_tnum<T, M: ArrayLength, N: ArrayLength>(
     a: GenericArray<T, M>,
     b: GenericArray<T, N>,
 ) -> GenericArray<T, typenum::op!(M + N)>
 where // ArrayLength is not enough, we also need to add a bound for `+`
     M: std::ops::Add<N, Output: ArrayLength>,
 {
-    todo!()
+    todo!() // Possible with unsafe code
 }
 ```
+Using this crate:
 ```rust
-// gnat implementation
 use gnat::{Nat, array::Arr};
-const fn concat_arrays_nat<T, M: Nat, N: Nat>(
+const fn concat_arrays_gnat<T, M: Nat, N: Nat>(
     a: Arr<T, M>,
     b: Arr<T, N>,
-) -> Arr<T, gnat::eval!(M + N)> {
-    a.concat_arr(b).retype()
+) -> Arr<T, gnat::eval!(M + N)> { // No extra bounds!
+    a.concat_arr(b).retype() // There is even a method for this :)
 }
 ```
+#### Const Recursion
+Naively writing a function that recurses over the const parameter is impossible in
+`generic_const_exprs` and `typenum`, since the recursive argument needs the same
+bounds as the parameter:
+```rust
+#![feature(generic_const_exprs)]
+fn recursive_gcex<const N: usize>() -> u32
+where
+    [(); N / 2]:, // The argument must be well-formed
+    [(); (N / 2) / 2]:, // The argument's argument must be well-formed
+    // ... need infinitely many bounds, even though N converges to 0
+{
+    if N == 0 {
+        0
+    } else {
+        // The bounds above for N need to imply the same bounds for N / 2
+        recursive_gce::<{ N / 2 }>() + 1
+    }
+}
 
-It is also possible to implement custom operations without any extra bounds needed to use them.
-See the [`mod@expr`](https://docs.rs/gnat/latest/gnat/expr/) module.
+use {std::ops::Div, typenum::{P2, Unsigned}};
+fn recursive_tnum<N>() -> u32
+where
+    N: Unsigned + Div<P2>,
+    N::Output: Unsigned + Div<P2>,
+    <N::Output as Div<P2>>::Output: Unsigned + Div<P2>,
+    // ... again, we would need this to repeat infinitely often
+{
+    if N::USIZE == 0 { // (Pretend this correctly handles overflow)
+        0
+    } else {
+        recursive_gce::<typenum::op!(N / 2)>() + 1
+    }
+}
+```
+While this can be expressed using a helper trait like `trait RecDiv2: Unsigned { type Output: RecDiv2;  }`,
+it is combersome and leaks into the bounds of every other calling function.
+
+Since this crate does not require such bounds, the naive implementation just works:
+```rust
+fn recursive_gnat<N: gnat::Nat>() -> u32 {
+    if gnat::is_zero::<N>() {
+        0
+    } else {
+        recursive_gnat::<gnat::eval!(N / 2)>() + 1
+    }
+}
+assert_eq!(recursive_gnat::<gnat::lit!(10)>(), 4); // 10 5 2 1 0
+```
 
 <!-- cargo-reedme: end -->
