@@ -1,19 +1,18 @@
 //! This crate provides type-level natural numbers, similar to [`typenum`](https://docs.rs/typenum/latest/typenum/).
 //!
-//! A type-level number is a type that represents a number. The [`Nat`] trait takes the role of the
-//! "type-level number type", i.e. one accepts a type-level number using a generic parameter with
-//! bound [`Nat`].
+//! A type-level number is a type that represents a number. The [`Nat`] trait functions as the
+//! "meta-type" of type-level numbers, i.e. to accept a type-level number, use a generic
+//! parameter `N: Nat`.
 //!
 //! The use cases are the same as those of generic consts.
 //!
-//! `gnat` differs from `typenum` in that its [`Nat`] trait is not a marker trait, but defines
-//! enough structure (through hidden generic associated types) to be able to define and use
-//! generic operations on it, without any extra bounds.
-//! As such, this crate is more expressive than `typenum` and `generic_const_exprs`.
+//! ## Why this crate?
+//! `gnat` differs from `typenum` in that [`Nat`] is not just a marker trait.
+//! It is sufficient for generic operations, without any extra bounds.
+//! This includes custom operations, see the [`expr`](mod@expr) module docs.
 //!
-//! For details about defining custom operations, see the [`expr`](mod@expr) module documentation.
+//! ### Motivating examples
 //!
-//! # Some motivating examples
 //! #### Concatenating arrays at compile time
 //! Using `generic_const_exprs` or `typenum`/`generic-array`:
 //! ```
@@ -66,7 +65,7 @@
 //!         0
 //!     } else {
 //!         // The bounds above for N need to imply the same bounds for N / 2
-//!         recursive_gce::<{ N / 2 }>() + 1
+//!         recursive_gcex::<{ N / 2 }>() + 1
 //!     }
 //! }
 //!
@@ -81,14 +80,14 @@
 //!     if N::USIZE == 0 { // (Pretend this correctly handles overflow)
 //!         0
 //!     } else {
-//!         recursive_gce::<typenum::op!(N / 2)>() + 1
+//!         recursive_tnum::<typenum::op!(N / 2)>() + 1
 //!     }
 //! }
 //! ```
 //! While this can be expressed using a helper trait like `trait RecDiv2: Unsigned { type Output: RecDiv2;  }`,
-//! it is combersome and leaks into the bounds of every other calling function.
+//! it is cumbersome and leaks into the bounds of every other calling function.
 //!
-//! Since this crate does not require such bounds, the naive implementation just works:
+//! Using this crate, the naive implementation without bounds just works:
 //! ```
 //! fn recursive_gnat<N: gnat::Nat>() -> u32 {
 //!     if gnat::is_zero::<N>() {
@@ -153,10 +152,10 @@ pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 
 /// Trait for deferred [`Nat`] expressions.
 ///
-/// This is not only a conversion trait, but forms an important part in how most operations are
-/// implemented. See the [`mod@expr`] module.
+/// This is not only a conversion trait. It is essential to the implementation of most operations.
+/// See the [`mod@expr`] module.
 ///
-/// It is common to define operations like this:
+/// A common pattern is to define operations like this:
 /// ```
 #[cfg_attr(doctest, doc = "```\n```compile_fail")]
 /// struct Add<L, R>(L, R);
@@ -268,10 +267,10 @@ macro_rules! expr {
     { $($t:tt)* } => { $crate::__mac::proc::expr!($($t)*) };
 }
 
-/// Same as [`expr!`] wrapped in [`Eval`]. Useful [`mod@array`] lengths.
+/// Same as [`expr!`] wrapped in [`Eval`]. Useful for [`mod@array`] lengths.
 ///
 /// # Examples
-/// The [`mod@array`] only accepts [`Nat`] for lengths, rather than [`NatExpr`] (for better type inference).
+/// The [`mod@array`] module only accepts [`Nat`] for lengths, rather than [`NatExpr`] (for better type inference).
 /// This macro is more convenient than [`expr!`]+[`Eval`]:
 /// ```
 /// use gnat::{Nat, array::*};
