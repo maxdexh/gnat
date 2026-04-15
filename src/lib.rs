@@ -145,8 +145,8 @@ pub use nat_api::*;
 /// the natural numbers including zero and the types that implement this trait.
 #[diagnostic::on_unimplemented(
     message = "`{Self}` is not a `gnat::Nat`",
-    label = "`{Self}` is expected to implement `gnat::Nat` directly",
-    note = "Consider using `gnat::Eval<{Self}>` if `{Self}: gnat::NatExpr`"
+    label = "expected to implement `gnat::Nat` directly",
+    note = "if `gnat::NatExpr` is implemented, consider using `gnat::Eval<{Self}>`"
 )]
 pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 
@@ -166,7 +166,7 @@ pub trait Nat: Sized + 'static + internals::NatSealed + NatExpr<Eval = Self> {}
 /// This can be abbreviated with the [`nat_expr`] macro.
 #[diagnostic::on_unimplemented(
     message = "Cannot convert `{Self}` to a `gnat::Nat`",
-    label = "To be used like a `Nat`, `{Self}` must implement `gnat::NatExpr`"
+    label = "must implement `gnat::NatExpr` to be used like a `Nat`"
 )]
 pub trait NatExpr {
     /// Evaluates to [`Nat`].
