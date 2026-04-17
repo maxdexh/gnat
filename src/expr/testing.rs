@@ -219,7 +219,7 @@ macro_rules! test_op {
                     crate::to_u128::<$got>(),
                     Some($expect),
                     "params={:?}",
-                    ($($param),*)
+                    ($first, $($param),*)
                 );
             }
 
