@@ -103,7 +103,6 @@
 //! >;
 //! ```
 
-#[expect(unused_imports)] // for docs
 use crate::{Nat, NatExpr};
 use crate::{internals::InternalOp, utils::apply};
 
@@ -169,7 +168,7 @@ macro_rules! opaque {
     (
         ()
         $(#[$attr:meta])*
-        $v:vis type $Name:ident<$($P:ident $(= $Def:ty)?),* $(,)?> $(: $OutBound:path)? = $LazyBase:ident;
+        $v:vis type $Name:ident<$($P:ident $(= $Def:ty)?),* $(,)?> = $LazyBase:ident;
     ) => {
         #[cfg(test)]
         #[allow(unused)] // Ensure that LazyBase is spanned for LSP
