@@ -15,6 +15,8 @@
 //! `generic_const_exprs` feature.
 //!
 //! ### Motivating examples
+//! <details>
+//! <summary>Click to expand</summary>
 //!
 //! #### Concatenating arrays at compile time
 //! Using `generic_const_exprs` or `typenum`/`generic-array`:
@@ -101,6 +103,7 @@
 //! }
 //! assert_eq!(recursive_gnat::<gnat::lit!(10)>(), 4); // 10 5 2 1 0
 //! ```
+//! </details>
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(not(any(test, doc, feature = "std")), no_std)]
 #![cfg_attr(test, recursion_limit = "1024")]

@@ -66,9 +66,91 @@
 //! on each recursive evaluation (`PopBit<PopBit<...>>`), which causes `MyBitAnd`
 //! to take longer to compute (longer compile times). Evaluating in each step causes
 //! the level of nesting to decrease, since the number becomes smaller.
-//!
 //! Similarly, switching the order of `R` and `L` on each recursion also terminates
 //! faster (for `R` much larger than `L`), at no extra cost.
+//!
+//! <details>
+//! <summary>Advanced technique: Tail recursion and helper traits</summary>
+//!
+//! This example defines an ad-hoc helper trait to implement division using tail recursion.
+//! Note that this is slower than the implementation without tail recursion that [`Div`]
+//! uses internally.
+//! ```
+//! use gnat::{
+//!     Nat, NatExpr,
+//!     expr::{LastBit, PopBit, PushBit},
+//! };
+//! pub struct Cons<H, T>(H, T);
+//! pub struct Nil;
+//! pub trait RNat {
+//!     type Tail: RNat;
+//!     type Head: Nat;
+//!     type End: Nat;
+//! }
+//! impl RNat for Nil {
+//!     type Tail = Self;
+//!     type Head = gnat::lit!(0);
+//!     type End = gnat::lit!(1);
+//! }
+//! impl<H: Nat, T: RNat> RNat for Cons<H, T> {
+//!     type Tail = T;
+//!     type Head = H;
+//!     type End = gnat::lit!(0);
+//! }
+//! #[gnat::nat_expr]
+//! pub type _DivAux<L: RNat, R: Nat, AccMod: NatExpr, AccQuot: NatExpr> = gnat::expr! {
+//!     if L::End {
+//!         AccQuot
+//!     } else {
+//!         _DivAuxRec(
+//!             L::Tail,
+//!             R,
+//!             gnat::Eval(PushBit(AccMod, L::Head)),
+//!             gnat::Eval(AccQuot),
+//!         )
+//!     }
+//! };
+//! #[gnat::nat_expr]
+//! pub type _DivAuxRec<L: RNat, R: Nat, NaiveMod: NatExpr, AccQuot: NatExpr> = gnat::expr! {
+//!     if NaiveMod < R {
+//!         _DivAux(
+//!             L,
+//!             R,
+//!             NaiveMod,
+//!             PushBit(AccQuot, 0),
+//!         )
+//!     } else {
+//!         _DivAux(
+//!             L,
+//!             R,
+//!             NaiveMod - R,
+//!             PushBit(AccQuot, 1),
+//!         )
+//!     }
+//! };
+//! #[gnat::nat_expr]
+//! pub type _DivAuxEnter<L: Nat, R: Nat, AccL: RNat> = gnat::expr! {
+//!     if L {
+//!         _DivAuxEnter(
+//!             gnat::Eval(PopBit(L)),
+//!             R,
+//!             Cons(
+//!                 gnat::Eval(LastBit(L)),
+//!                 AccL,
+//!             ),
+//!         )
+//!     } else {
+//!         _DivAux(AccL, R, 0, 0)
+//!     }
+//! };
+//! #[gnat::nat_expr]
+//! pub type MyDiv<L: NatExpr, R: NatExpr> = gnat::expr! { _DivAuxEnter(L::Eval, R::Eval, Nil) };
+//! assert_eq!(
+//!     gnat::to_u128::<gnat::expr! { MyDiv(420, 69) }>(),
+//!     Some(420 / 69)
+//! )
+//! ```
+//! </details>
 //!
 //! # Opaqueness
 //! There is another primitive operation, [`Opaque<P, Out>`].
