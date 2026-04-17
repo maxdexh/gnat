@@ -26,11 +26,16 @@ parameter `N: Nat`.
 The use cases are the same as those of generic consts.
 
 ## Why this crate?
-`gnat` differs from `typenum` in that [`Nat`](https://docs.rs/gnat/latest/gnat/trait.Nat.html) is not just a marker trait.
-It is sufficient for generic operations, without any extra bounds.
-This includes custom operations, see the [`expr`](https://docs.rs/gnat/latest/gnat/expr/) module docs.
+This crate differs from `typenum` in that [`Nat`](https://docs.rs/gnat/latest/gnat/trait.Nat.html) is not just a marker trait.
+To perform arbitrary operations on a generic `N: Nat`, no extra bounds are
+required.
+
+As a result, this crate is more expressive than `typenum` or the
+`generic_const_exprs` feature.
 
 ### Motivating examples
+<details>
+<summary>Click to expand</summary>
 
 #### Concatenating arrays at compile time
 Using `generic_const_exprs` or `typenum`/`generic-array`:
@@ -116,5 +121,6 @@ fn recursive_gnat<N: gnat::Nat>() -> u32 {
 }
 assert_eq!(recursive_gnat::<gnat::lit!(10)>(), 4); // 10 5 2 1 0
 ```
+</details>
 
 <!-- cargo-reedme: end -->
