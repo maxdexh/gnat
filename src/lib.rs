@@ -7,9 +7,12 @@
 //! The use cases are the same as those of generic consts.
 //!
 //! ## Why this crate?
-//! `gnat` differs from `typenum` in that [`Nat`] is not just a marker trait.
-//! It is sufficient for generic operations, without any extra bounds.
-//! This includes custom operations, see the [`expr`](mod@expr) module docs.
+//! This crate differs from `typenum` in that [`Nat`] is not just a marker trait.
+//! To perform arbitrary operations on a generic `N: Nat`, no extra bounds are
+//! required.
+//!
+//! As a result, this crate is more expressive than `typenum` or the
+//! `generic_const_exprs` feature.
 //!
 //! ### Motivating examples
 //!

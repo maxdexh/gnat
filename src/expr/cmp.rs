@@ -39,7 +39,7 @@ pub type _Ne<L: NatExpr, R: NatExpr> = IsZero<Eq<L, R>>;
 #[apply(opaque)]
 pub type Ne<L, R> = _Ne;
 
-/// LtByLast(L, R) := (H(L) == H(R) and P(L) == 0 and P(R) == 1)
+/// LtByLast(L, R) := H(L) == H(R) and P(L) == 0 and P(R) == 1
 type _LtByLast<L, R> = _And<
     If<_P<L>, crate::lit!(0), _P<R>>, //
     _Eq<_H<L>, _H<R>>,
